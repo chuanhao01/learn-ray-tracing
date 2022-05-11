@@ -1,0 +1,6 @@
+{
+  "[cpp]": {
+    "editor.semanticHighlighting.enabled": true,
+    "editor.formatOnSave": true
+  }
+}
