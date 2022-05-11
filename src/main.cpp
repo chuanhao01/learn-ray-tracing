@@ -6,10 +6,12 @@ int main() {
   const int IMAGE_HEIGHT = 256;
 
   // Render
+  // Doing it from top left
   std::cout << "P3\n" << IMAGE_WIDTH << ' ' << IMAGE_HEIGHT << "\n255\n";
 
   for (int j = 0; j < IMAGE_HEIGHT; j++) {
     for (int i = 0; i < IMAGE_WIDTH; i++) {
+      // (y, x), (j, i)
       auto r = double(i) / (IMAGE_WIDTH - 1);
       auto g = double(j) / (IMAGE_HEIGHT - 1);
       auto b = 0.25;
