@@ -1,4 +1,5 @@
 {
+  "cmake.revealLog": "never",
   "[cpp]": {
     "editor.semanticHighlighting.enabled": true,
     "editor.formatOnSave": true
