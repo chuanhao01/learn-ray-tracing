@@ -27,7 +27,8 @@ int main() {
       auto g = double(j % (COLOR_MAX + 1)) / COLOR_MAX;
       auto b = 0.25;
 
-      // Math is because truncation
+      // Math is because truncation (Prob)
+      // Did some test, IDK, Math
       // So 0 - 255 = 0 - 254.9999 = 0 - 254
       // Hence needs 0 - 256 = 0 - 255.999 = 0 - 255
       int ir = static_cast<int>(255.999 * r);
