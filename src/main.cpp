@@ -1,6 +1,6 @@
 #include <iostream>
 
-int main() {
+int engine() {
   // Image
   const int IMAGE_WIDTH = 256;
   const int IMAGE_HEIGHT = 256;
@@ -41,4 +41,25 @@ int main() {
   std::cerr << "\n"
             << "Done!"
             << "\n";
+
+  return 0;
 }
+
+int testMath() {
+  const int B = 255, BB = 256;
+  for (int i = 0; i < BB; i++) {
+    auto a = double(i % (B + 1)) / B;
+    auto aa = double(i) / B;
+    if (a != aa) {
+      std::cout << i << "\n";
+      std::cout << a << "\n";
+      std::cout << aa << "\n";
+      std::cout << "\n";
+    }
+  }
+  std::cout << "Done!"
+            << "\n";
+  return 0;
+}
+
+int main() { engine(); }
