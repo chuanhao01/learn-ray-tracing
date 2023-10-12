@@ -16,7 +16,7 @@ int engine() {
   auto FOCAL_LENGTH = 1.0;
   auto VIEWPORT_HEIGHT = 2.0;
   auto VIEWPORT_WIDTH =
-      VIEWPORT_HEIGHT * static_cast<double>(IMAGE_WIDTH / IMAGE_HEIGHT);
+      VIEWPORT_HEIGHT * (static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT);
   auto camera_center = vec::Point3(0, 0, 0);
 
   auto viewport_u = vec::Vec3(VIEWPORT_WIDTH, 0, 0);
@@ -26,7 +26,7 @@ int engine() {
   auto pixel_delta_v = viewport_v / IMAGE_HEIGHT;
 
   auto viewport_upper_left = camera_center - vec::Vec3(0, 0, FOCAL_LENGTH) -
-                             viewport_u / 2.0 - viewport_v / 2.0;
+                             viewport_u / 2 - viewport_v / 2;
   auto pixel00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
@@ -44,7 +44,8 @@ int engine() {
     std::cerr << "\r"
               << "Scanlines remaining: " << IMAGE_HEIGHT - j - 1 << std::flush;
     for (int i = 0; i < IMAGE_WIDTH; i++) {
-      auto pixel_center = pixel00_loc + i * pixel_delta_u + j * pixel_delta_v;
+      auto pixel_center =
+          pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
       auto ray_direction = pixel_center - camera_center;
       ray::Ray r(camera_center, ray_direction);
 
