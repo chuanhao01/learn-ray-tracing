@@ -10,7 +10,7 @@ int engine() {
 
   int IMAGE_WIDTH = 400;
   int IMAGE_HEIGHT = static_cast<int>(IMAGE_WIDTH / ASPECT_RATIO);
-  IMAGE_HEIGHT = (IMAGE_HEIGHT < 1) ? IMAGE_HEIGHT : 1;
+  IMAGE_HEIGHT = (IMAGE_HEIGHT < 1) ? 1 : IMAGE_HEIGHT;
 
   // Camera
   auto FOCAL_LENGTH = 1.0;
