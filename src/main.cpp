@@ -1,13 +1,34 @@
 #include "Color.h"
+#include "Ray.h"
 #include "Vec3.h"
 
 #include <iostream>
 
 int engine() {
   // Image
-  const int IMAGE_WIDTH = 256;
-  const int IMAGE_HEIGHT = 256;
-  const int COLOR_MAX = 255;
+  auto ASPECT_RATIO = 16.0 / 9.0;
+
+  int IMAGE_WIDTH = 400;
+  int IMAGE_HEIGHT = static_cast<int>(IMAGE_WIDTH / ASPECT_RATIO);
+  IMAGE_HEIGHT = (IMAGE_HEIGHT < 1) ? IMAGE_HEIGHT : 1;
+
+  // Camera
+  auto FOCAL_LENGTH = 1.0;
+  auto VIEWPORT_HEIGHT = 2.0;
+  auto VIEWPORT_WIDTH =
+      VIEWPORT_HEIGHT * static_cast<double>(IMAGE_WIDTH / IMAGE_HEIGHT);
+  auto camera_center = vec::Point3(0, 0, 0);
+
+  auto viewport_u = vec::Vec3(VIEWPORT_WIDTH, 0, 0);
+  auto viewport_v = vec::Vec3(0, -VIEWPORT_HEIGHT, 0);
+
+  auto pixel_delta_u = viewport_u / IMAGE_WIDTH;
+  auto pixel_delta_v = viewport_v / IMAGE_HEIGHT;
+
+  auto viewport_upper_left = camera_center - vec::Vec3(0, 0, FOCAL_LENGTH) -
+                             viewport_u / 2.0 - viewport_v / 2.0;
+  auto pixel00_loc =
+      viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
   // Render
   // Doing it from top left
@@ -23,14 +44,11 @@ int engine() {
     std::cerr << "\r"
               << "Scanlines remaining: " << IMAGE_HEIGHT - j - 1 << std::flush;
     for (int i = 0; i < IMAGE_WIDTH; i++) {
-      // Per row
-      // Color mapping to 0.0 - 1.0 from 0 - 255
-      // Need to have length wrap around 0 - 255
-      auto r = double(i) / COLOR_MAX;
-      auto g = double(j) / COLOR_MAX;
-      auto b = 0;
+      auto pixel_center = pixel00_loc + i * pixel_delta_u + j * pixel_delta_v;
+      auto ray_direction = pixel_center - camera_center;
+      ray::Ray r(camera_center, ray_direction);
 
-      color::Color pixel_color(r, g, b);
+      auto pixel_color = ray::color_ray(r);
       color::write_color(std::cout, pixel_color);
       std::cout << "\n";
     }
