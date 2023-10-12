@@ -1,3 +1,4 @@
+#include "Color.h"
 #include "Vec3.h"
 
 #include <iostream>
@@ -29,15 +30,9 @@ int engine() {
       auto g = double(j) / COLOR_MAX;
       auto b = 0;
 
-      // Math is because truncation (Prob)
-      // Did some test, IDK, Math
-      // So 0 - 255 = 0 - 254.9999 = 0 - 254
-      // Hence needs 0 - 256 = 0 - 255.999 = 0 - 255
-      int ir = static_cast<int>(255.999 * r);
-      int ig = static_cast<int>(255.999 * g);
-      int ib = static_cast<int>(255.999 * b);
-
-      std::cout << ir << " " << ig << " " << ib << "\n";
+      color::Color pixel_color(r, g, b);
+      color::write_color(std::cout, pixel_color);
+      std::cout << "\n";
     }
   }
   std::cerr << "\n"
@@ -62,9 +57,4 @@ int testMath() {
   return 0;
 }
 
-int main() {
-  vec::Vec3 a(1, 2, 3);
-  vec::Vec3 b(1, 2, 3);
-  a += b;
-  std::cout << vec::unit_vector(a);
-}
+int main() { engine(); }
