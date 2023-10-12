@@ -1,3 +1,5 @@
+#include "Vec3.h"
+
 #include <iostream>
 
 int engine() {
@@ -23,9 +25,9 @@ int engine() {
       // Per row
       // Color mapping to 0.0 - 1.0 from 0 - 255
       // Need to have length wrap around 0 - 255
-      auto r = double(i % (COLOR_MAX + 1)) / COLOR_MAX;
-      auto g = double(j % (COLOR_MAX + 1)) / COLOR_MAX;
-      auto b = 0.25;
+      auto r = double(i) / COLOR_MAX;
+      auto g = double(j) / COLOR_MAX;
+      auto b = 0;
 
       // Math is because truncation (Prob)
       // Did some test, IDK, Math
@@ -50,16 +52,19 @@ int testMath() {
   for (int i = 0; i < BB; i++) {
     auto a = double(i % (B + 1)) / B;
     auto aa = double(i) / B;
-    if (a != aa) {
-      std::cout << i << "\n";
-      std::cout << a << "\n";
-      std::cout << aa << "\n";
-      std::cout << "\n";
-    }
+    std::cout << i << "\n";
+    std::cout << a << "\n";
+    std::cout << aa << "\n";
+    std::cout << "\n";
   }
   std::cout << "Done!"
             << "\n";
   return 0;
 }
 
-int main() { engine(); }
+int main() {
+  vec::Vec3 a(1, 2, 3);
+  vec::Vec3 b(1, 2, 3);
+  a += b;
+  std::cout << vec::unit_vector(a);
+}
