@@ -8,6 +8,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set( SOURCE_ONE_WEEKEND
     src/main.cpp
     src/Vec3.cpp
+    src/Color.cpp
 )
 
 add_executable(ray-trace-engine ${SOURCE_ONE_WEEKEND})

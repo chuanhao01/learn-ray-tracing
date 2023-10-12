@@ -47,7 +47,6 @@ Vec3 cross(const Vec3 &v1, const Vec3 &v2);
 Vec3 unit_vector(const Vec3 &v);
 
 using Point3 = Vec3; // 3D Point
-using Color = Vec3;  //
 
 } // namespace vec
 
