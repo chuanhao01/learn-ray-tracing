@@ -9,6 +9,7 @@ set( SOURCE_ONE_WEEKEND
     src/main.cpp
     src/Vec3.cpp
     src/Color.cpp
+    src/Ray.cpp
 )
 
 add_executable(ray-trace-engine ${SOURCE_ONE_WEEKEND})
