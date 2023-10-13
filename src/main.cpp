@@ -16,7 +16,7 @@ int engine() {
   auto FOCAL_LENGTH = 1.0;
   auto VIEWPORT_HEIGHT = 2.0;
   auto VIEWPORT_WIDTH =
-      VIEWPORT_HEIGHT * (static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT);
+      VIEWPORT_HEIGHT * static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT;
   auto camera_center = vec::Point3(0, 0, 0);
 
   auto viewport_u = vec::Vec3(VIEWPORT_WIDTH, 0, 0);
