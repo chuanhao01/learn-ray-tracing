@@ -3,5 +3,6 @@
   "[cpp]": {
     "editor.semanticHighlighting.enabled": true,
     "editor.formatOnSave": true
-  }
+  },
+  "C_Cpp.errorSquiggles": "enabled"
 }

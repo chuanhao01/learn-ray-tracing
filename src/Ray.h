@@ -2,7 +2,6 @@
 #define RAY_H
 
 #include "Color.h"
-#include "Objects.h"
 #include "Vec3.h"
 
 namespace ray {
@@ -23,7 +22,6 @@ private:
   vec::Vec3 dir;
 };
 
-double hit_sphere(const objects::Sphere &s, const Ray &r);
 color::Color color_ray(const Ray &r);
 } // namespace ray
 

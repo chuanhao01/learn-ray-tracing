@@ -39,7 +39,6 @@ Vec3 operator-(const Vec3 &v1, const Vec3 &v2);
 Vec3 operator*(const Vec3 &v, double t);
 Vec3 operator*(double t, const Vec3 &v);
 Vec3 operator/(Vec3 &v, double t);
-Vec3 operator/(double t, Vec3 &v);
 
 double dot(const Vec3 &v1, const Vec3 &v2);
 Vec3 cross(const Vec3 &v1, const Vec3 &v2);

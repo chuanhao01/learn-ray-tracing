@@ -1,22 +1,24 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "Hittable.h"
+#include "Ray.h"
 #include "Vec3.h"
 
 namespace objects {
-class Sphere {
+class Sphere : public hittable::Hittable {
 public:
   Sphere() {}
 
-  Sphere(const vec::Point3 &center, double radius) : cen(center), rad(radius) {}
+  Sphere(const vec::Point3 &_center, double _radius)
+      : center(_center), radius(_radius) {}
 
-  double radius() { return rad; }
-  double radius() const { return rad; }
-  vec::Point3 center() const { return cen; }
+  bool hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
+           hittable::Hit_Record &rec) const;
 
 private:
-  double rad;
-  vec::Point3 cen;
+  double radius;
+  vec::Point3 center;
 };
 } // namespace objects
 
