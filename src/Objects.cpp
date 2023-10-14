@@ -10,7 +10,7 @@ namespace objects {
 bool Sphere::hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
                  hittable::Hit_Record &rec) const {
 
-  auto a_minus_c = r.origin() - center;
+  vec::Vec3 a_minus_c = r.origin() - center;
 
   auto a = r.direction().length_squared();
   auto b = vec::dot(a_minus_c, r.direction());
@@ -33,8 +33,8 @@ bool Sphere::hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
 
   // Creating the hit_record with the passed by reference rec
   rec.t = root;
-  rec.p = r.at(root);
-  rec.normal = (rec.p - center) / radius;
+  rec.p = r.at(rec.t);
+  rec.set_face_normal(r, rec.p - center);
   return true;
 }
 } // namespace objects

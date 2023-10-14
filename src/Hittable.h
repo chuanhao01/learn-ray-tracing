@@ -12,13 +12,18 @@ namespace hittable {
 class Hit_Record {
 public:
   /**
-   * @param normal The normal vector of the hit
+   * @param against_unit_normal The unit vector of the normal against the
+   * direction of the hit
    * @param p The point at which the ray hits the object
    * @param t The t value used from the ray to generate the hit
+   * @param font_face If the ray hits is from the outside
    */
-  vec::Vec3 normal;
+  vec::Vec3 against_unit_normal;
   vec::Point3 p;
   double t;
+  bool front_face;
+
+  void set_face_normal(const ray::Ray &r, const vec::Vec3 &outward_unit_normal);
 };
 
 class Hittable {
