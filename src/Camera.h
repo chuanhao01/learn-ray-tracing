@@ -3,6 +3,7 @@
 
 #include "Color.h"
 #include "Hittable_List.h"
+#include "Ray.h"
 #include "Vec3.h"
 
 namespace camera {
@@ -14,6 +15,8 @@ public:
 
   double focal_length = 1.0;
   double viewport_height = 2.0;
+
+  int samples_per_pixel = 10;
 
   vec::Vec3 center = vec::Vec3(0, 0, 0);
 
@@ -29,6 +32,10 @@ private:
   vec::Point3 pixel00_loc;
 
   void init();
+  ray::Ray get_ray(double j, double i);
+
+  vec::Point3 pixel_sample_square();
+
   color::Color color_ray(const ray::Ray &r,
                          const hittable_list::Hittable_List &world);
 };

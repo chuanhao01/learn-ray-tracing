@@ -1,6 +1,8 @@
 #include "Camera.h"
 #include "Color.h"
 #include "Hittable_List.h"
+#include "RTWeekend.h"
+#include "Ray.h"
 #include "Vec3.h"
 
 #include <iostream>
@@ -22,13 +24,13 @@ void Camera::render(const hittable_list::Hittable_List &world) {
     std::cerr << "\r"
               << "Scanlines remaining: " << image_height - j - 1 << std::flush;
     for (int i = 0; i < image_width; i++) {
-      auto pixel_center =
-          pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-      auto ray_direction = pixel_center - center;
-      ray::Ray r(center, ray_direction);
+      color::Color pixel_color(0, 0, 0);
+      for (int sample = 0; sample < samples_per_pixel; sample++) {
+        ray::Ray r = get_ray(j, i);
+        pixel_color += color_ray(r, world);
+      }
 
-      auto pixel_color = color_ray(r, world);
-      color::write_color(std::cout, pixel_color);
+      color::write_color(std::cout, pixel_color, samples_per_pixel);
       std::cout << "\n";
     }
   }
@@ -51,6 +53,28 @@ void Camera::init() {
   auto upper_left_corner =
       center - vec::Vec3(0, 0, focal_length) - 0.5 * (delta_u + delta_v);
   pixel00_loc = upper_left_corner + 0.5 * (pixel_delta_u + pixel_delta_v);
+}
+
+/**
+ * @brief
+ * Returns a random ray for a given pixel at (y, x) => (j, i)
+ * @param j y position of the pixel
+ * @param i x position of the pixel
+ * @return A sampled ray within the square of the pixel
+ */
+ray::Ray Camera::get_ray(double j, double i) {
+
+  auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+  auto pixel_sample = pixel_center + pixel_sample_square();
+
+  auto ray_direction = pixel_sample - center;
+  return ray::Ray(center, ray_direction);
+}
+
+vec::Point3 Camera::pixel_sample_square() {
+  auto x = random_double() - 0.5;
+  auto y = random_double() - 0.5;
+  return x * pixel_delta_u + y * pixel_delta_v;
 }
 
 color::Color Camera::color_ray(const ray::Ray &r,

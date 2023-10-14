@@ -13,6 +13,10 @@ public:
   double y() { return e[1]; }
   double z() { return e[2]; }
 
+  double x() const { return e[0]; }
+  double y() const { return e[1]; }
+  double z() const { return e[2]; }
+
   // Overloading operators
   // Subscript access to values
   double operator[](int i) const { return e[i]; }
