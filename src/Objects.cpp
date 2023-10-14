@@ -34,7 +34,8 @@ bool Sphere::hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
   // Creating the hit_record with the passed by reference rec
   rec.t = root;
   rec.p = r.at(rec.t);
-  rec.set_face_normal(r, rec.p - center);
+  vec::Vec3 outward_normal = rec.p - center;
+  rec.set_face_normal(r, outward_normal / radius);
   return true;
 }
 } // namespace objects

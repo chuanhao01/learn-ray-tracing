@@ -21,7 +21,7 @@ public:
   void clear() { objects.clear(); }
 
   bool hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
-           hittable::Hit_Record &rec);
+           hittable::Hit_Record &rec) const override;
 };
 } // namespace hittable_list
 

@@ -22,7 +22,6 @@ private:
   vec::Vec3 dir;
 };
 
-color::Color color_ray(const Ray &r);
 } // namespace ray
 
 #endif

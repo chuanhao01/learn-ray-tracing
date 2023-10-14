@@ -1,6 +1,4 @@
-#include "Color.h"
-#include "Ray.h"
-#include "Vec3.h"
+#include "RTWeekend.h"
 
 #include <iostream>
 
@@ -30,6 +28,11 @@ int engine() {
   auto pixel00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
+  // World
+  hittable_list::Hittable_List world;
+  world.add(std::make_shared<objects::Sphere>(vec::Point3(0, 0, -1), 0.5));
+  world.add(std::make_shared<objects::Sphere>(vec::Point3(0, -100.5, -1), 100));
+
   // Render
   // Doing it from top left
   std::cout << "P3"
@@ -49,7 +52,7 @@ int engine() {
       auto ray_direction = pixel_center - camera_center;
       ray::Ray r(camera_center, ray_direction);
 
-      auto pixel_color = ray::color_ray(r);
+      auto pixel_color = color_ray(r, world);
       color::write_color(std::cout, pixel_color);
       std::cout << "\n";
     }
