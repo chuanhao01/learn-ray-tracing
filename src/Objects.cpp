@@ -1,5 +1,6 @@
 #include "Objects.h"
 #include "Hittable.h"
+#include "Interval.h"
 #include "Ray.h"
 #include "Vec3.h"
 
@@ -7,7 +8,7 @@
 
 namespace objects {
 
-bool Sphere::hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
+bool Sphere::hit(const ray::Ray &r, interval::Interval valid_ray_t,
                  hittable::Hit_Record &rec) const {
 
   vec::Vec3 a_minus_c = r.origin() - center;
@@ -23,10 +24,10 @@ bool Sphere::hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
   // Taking the closer point in which the ray intersects the sphere
   auto sqrt_discriminant = std::sqrt(discriminant);
   auto root = (-b - sqrt_discriminant) / a;
-  if (root <= ray_t_min || root >= ray_t_max) {
+  if (!valid_ray_t.contains(root)) {
     // Given root is not within range, so checking other root
     root = (-b + sqrt_discriminant) / a;
-    if (root <= ray_t_min || root >= ray_t_max) {
+    if (!valid_ray_t.contains(root)) {
       return false;
     }
   }

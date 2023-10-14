@@ -2,6 +2,7 @@
 #define OBJECT_H
 
 #include "Hittable.h"
+#include "Interval.h"
 #include "Ray.h"
 #include "Vec3.h"
 
@@ -13,7 +14,7 @@ public:
   Sphere(const vec::Point3 &_center, double _radius)
       : center(_center), radius(_radius) {}
 
-  bool hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
+  bool hit(const ray::Ray &r, interval::Interval valid_ray_t,
            hittable::Hit_Record &rec) const;
 
 private:

@@ -5,7 +5,7 @@ double degrees_to_radians(double degrees) { return degrees / 180.0 * PI; }
 color::Color color_ray(const ray::Ray &r,
                        const hittable_list::Hittable_List &world) {
   hittable::Hit_Record rec;
-  if (world.hit(r, 0, infinity, rec)) {
+  if (world.hit(r, interval::Interval(0, infinity), rec)) {
     // Visualize the unit normal as rgb
     return 0.5 * (rec.against_unit_normal + vec::Vec3(1, 1, 1));
   }

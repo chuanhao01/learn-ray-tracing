@@ -14,8 +14,10 @@
 
 // Including all our libs
 #include "Color.h"
+#include "Constants.h"
 #include "Hittable.h"
 #include "Hittable_List.h"
+#include "Interval.h"
 #include "Objects.h"
 #include "Ray.h"
 #include "Vec3.h"
@@ -24,10 +26,6 @@
 #include <cmath>
 #include <limits>
 #include <memory>
-
-// Constants
-const double infinity = std::numeric_limits<double>::infinity();
-const double PI = 3.1415926535897932385;
 
 // Utility Functions
 double degrees_to_radians(double degrees);

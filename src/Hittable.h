@@ -1,6 +1,7 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
+#include "Interval.h"
 #include "Ray.h"
 #include "Vec3.h"
 
@@ -30,7 +31,7 @@ class Hittable {
 public:
   virtual ~Hittable() = default;
 
-  virtual bool hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
+  virtual bool hit(const ray::Ray &r, interval::Interval valid_ray_t,
                    Hit_Record &rec) const = 0;
 };
 } // namespace hittable

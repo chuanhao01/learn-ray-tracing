@@ -21,6 +21,9 @@ set( SOURCE_ONE_WEEKEND
     src/Hittable_List.cpp
     src/RTWeekend.h
     src/RTWeekend.cpp
+    src/Interval.h
+    src/Interval.cpp
+    src/Constants.h
 )
 
 add_executable(ray-trace-engine ${SOURCE_ONE_WEEKEND})

@@ -20,7 +20,7 @@ public:
   }
   void clear() { objects.clear(); }
 
-  bool hit(const ray::Ray &r, double ray_t_min, double ray_t_max,
+  bool hit(const ray::Ray &r, interval::Interval valid_ray_t,
            hittable::Hit_Record &rec) const override;
 };
 } // namespace hittable_list
