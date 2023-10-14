@@ -4,5 +4,5 @@
     "editor.semanticHighlighting.enabled": true,
     "editor.formatOnSave": true
   },
-  "C_Cpp.errorSquiggles": "enabled"
+  "C_Cpp.errorSquiggles": "enabled",
 }
