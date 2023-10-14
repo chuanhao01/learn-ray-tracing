@@ -25,13 +25,14 @@
 
 // Libs needed also included
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 
 // Utility Functions
 double degrees_to_radians(double degrees);
 
-color::Color color_ray(const ray::Ray &r,
-                       const hittable_list::Hittable_List &world);
+double random_double();
+double random(double min, double max);
 
 #endif
