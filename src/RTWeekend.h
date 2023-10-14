@@ -13,6 +13,7 @@
 #define RTWEEKEND_H
 
 // Including all our libs
+#include "Camera.h"
 #include "Color.h"
 #include "Constants.h"
 #include "Hittable.h"
