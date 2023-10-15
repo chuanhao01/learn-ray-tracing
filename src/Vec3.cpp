@@ -110,6 +110,16 @@ Vec3 cross(const Vec3 &v1, const Vec3 &v2) {
 Vec3 reflect(const Vec3 &v, const Vec3 &unit_normal) {
   return v - 2 * dot(v, unit_normal) * unit_normal;
 }
+Vec3 refract(const Vec3 &unit_vector, const Vec3 &unit_normal,
+             double eta_over_eta_prime) {
+  auto cos_theta = std::fmin(dot(-unit_vector, unit_normal), 1.0);
+  Vec3 r_out_perpendicular =
+      eta_over_eta_prime * (unit_vector + cos_theta * unit_normal);
+  Vec3 r_out_parrallel =
+      -std::sqrt(std::fabs(1.0 - r_out_perpendicular.length_squared())) *
+      unit_normal;
+  return r_out_perpendicular + r_out_parrallel;
+}
 
 Vec3 unit_vector(const Vec3 &v) {
   Vec3 nv = Vec3(v);

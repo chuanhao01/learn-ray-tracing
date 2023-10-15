@@ -47,6 +47,18 @@ private:
   color::Color albedo;
   double fuzzy_factor;
 };
+
+class Dielectric : public Material {
+public:
+  Dielectric(double _index_of_refraction)
+      : index_of_refraction(_index_of_refraction) {}
+
+  bool scatter(const ray::Ray &r_in, const hittable::Hit_Record &rec,
+               color::Color &attenuation, ray::Ray &scattered_r) const override;
+
+private:
+  double index_of_refraction;
+};
 } // namespace material
 
 #endif

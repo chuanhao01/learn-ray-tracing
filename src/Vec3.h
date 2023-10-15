@@ -58,6 +58,8 @@ Vec3 cross(const Vec3 &v1, const Vec3 &v2);
 Vec3 unit_vector(const Vec3 &v);
 
 Vec3 reflect(const Vec3 &v, const Vec3 &unit_normal);
+Vec3 refract(const Vec3 &unit_vector, const Vec3 &unit_normal,
+             double eta_over_eta_prime);
 
 Vec3 random_unit_vector_in_unit_sphere();
 Vec3 random_unit_vector_on_hemisphere(const Vec3 &normal);
