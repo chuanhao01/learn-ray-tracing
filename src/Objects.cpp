@@ -37,6 +37,7 @@ bool Sphere::hit(const ray::Ray &r, interval::Interval valid_ray_t,
   rec.p = r.at(rec.t);
   vec::Vec3 outward_normal = rec.p - center;
   rec.set_face_normal(r, outward_normal / radius);
+  rec.mat = material;
   return true;
 }
 } // namespace objects

@@ -90,12 +90,22 @@ color::Color Camera::color_ray(const ray::Ray &r, int max_depth,
    * bounch right below the surface
    */
   if (world.hit(r, interval::Interval(0.001, infinity), rec)) {
+    // Using random diffuse off hemisphere
     // vec::Vec3 diffuse_direction =
     //     vec::random_unit_vector_on_hemisphere(rec.against_unit_normal);
-    vec::Vec3 diffuse_direction =
-        rec.against_unit_normal + vec::random_unit_vector_in_unit_sphere();
-    return 0.5 *
-           color_ray(ray::Ray(rec.p, diffuse_direction), max_depth - 1, world);
+
+    // Using Lambertain Reflection
+    // vec::Vec3 diffuse_direction =
+    //     rec.against_unit_normal + vec::random_unit_vector_in_unit_sphere();
+
+    // Using Materials
+    ray::Ray scattered_r;
+    color::Color attenuation;
+    if (rec.mat->scatter(r, rec, attenuation, scattered_r)) {
+      return attenuation * color_ray(scattered_r, max_depth - 1, world);
+    }
+    // If you hit something without a material
+    return color::Color(0, 0, 0);
   }
   // If the ray does not hit anything, visualize as y value from white to blue
   auto unit_direction = vec::unit_vector(r.get_direction());
