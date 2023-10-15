@@ -34,6 +34,6 @@
 double degrees_to_radians(double degrees);
 
 double random_double();
-double random(double min, double max);
+double random_double(double min, double max);
 
 #endif

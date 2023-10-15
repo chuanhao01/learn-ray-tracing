@@ -11,10 +11,10 @@ namespace objects {
 bool Sphere::hit(const ray::Ray &r, interval::Interval valid_ray_t,
                  hittable::Hit_Record &rec) const {
 
-  vec::Vec3 a_minus_c = r.origin() - center;
+  vec::Vec3 a_minus_c = r.get_origin() - center;
 
-  auto a = r.direction().length_squared();
-  auto b = vec::dot(a_minus_c, r.direction());
+  auto a = r.get_direction().length_squared();
+  auto b = vec::dot(a_minus_c, r.get_direction());
   auto c = a_minus_c.length_squared() - radius * radius;
   auto discriminant = b * b - a * c;
   if (discriminant < 0) {
@@ -24,10 +24,10 @@ bool Sphere::hit(const ray::Ray &r, interval::Interval valid_ray_t,
   // Taking the closer point in which the ray intersects the sphere
   auto sqrt_discriminant = std::sqrt(discriminant);
   auto root = (-b - sqrt_discriminant) / a;
-  if (!valid_ray_t.contains(root)) {
+  if (!valid_ray_t.surrounds(root)) {
     // Given root is not within range, so checking other root
     root = (-b + sqrt_discriminant) / a;
-    if (!valid_ray_t.contains(root)) {
+    if (!valid_ray_t.surrounds(root)) {
       return false;
     }
   }

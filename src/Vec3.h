@@ -9,6 +9,10 @@ public:
   Vec3() : e{0, 0, 0} {}
   Vec3(double x, double y, double z) : e{x, y, z} {}
 
+  static Vec3 random();
+  static Vec3 random(double min, double max);
+  static Vec3 random_in_unit_sphere();
+
   double x() { return e[0]; }
   double y() { return e[1]; }
   double z() { return e[2]; }
@@ -48,6 +52,9 @@ double dot(const Vec3 &v1, const Vec3 &v2);
 Vec3 cross(const Vec3 &v1, const Vec3 &v2);
 
 Vec3 unit_vector(const Vec3 &v);
+
+Vec3 random_unit_vector_in_unit_sphere();
+Vec3 random_unit_vector_on_hemisphere(const Vec3 &normal);
 
 using Point3 = Vec3; // 3D Point
 

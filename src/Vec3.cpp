@@ -1,9 +1,28 @@
 #include "Vec3.h"
+#include "RTWeekend.h"
 
 #include <cmath>
 #include <iostream>
 
 namespace vec {
+
+Vec3 Vec3::random() {
+  return Vec3(random_double(), random_double(), random_double());
+}
+Vec3 Vec3::random(double min, double max) {
+  return Vec3(random_double(min, max), random_double(min, max),
+              random_double(min, max));
+}
+
+Vec3 Vec3::random_in_unit_sphere() {
+  while (true) {
+    auto v = Vec3::random(-1, 1);
+    if (v.length_squared() < 1) {
+      return v;
+    }
+  }
+}
+
 Vec3 &Vec3::operator+=(const Vec3 &v) {
   e[0] += v[0];
   e[1] += v[1];
@@ -74,5 +93,18 @@ Vec3 cross(const Vec3 &v1, const Vec3 &v2) {
 Vec3 unit_vector(const Vec3 &v) {
   Vec3 nv = Vec3(v);
   return nv / nv.length();
+}
+
+Vec3 random_unit_vector_in_unit_sphere() {
+  return unit_vector(Vec3::random_in_unit_sphere());
+}
+
+Vec3 random_unit_vector_on_hemisphere(const Vec3 &unit_normal) {
+  Vec3 on_unit_sphere = random_unit_vector_in_unit_sphere();
+  if (dot(on_unit_sphere, unit_normal) > 0.0) {
+    // Same side
+    return on_unit_sphere;
+  }
+  return -on_unit_sphere;
 }
 } // namespace vec

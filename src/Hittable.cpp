@@ -12,7 +12,7 @@ namespace hittable {
  */
 void Hit_Record::set_face_normal(const ray::Ray &r,
                                  const vec::Vec3 &outward_unit_normal) {
-  front_face = vec::dot(r.direction(), outward_unit_normal);
+  front_face = vec::dot(r.get_direction(), outward_unit_normal);
   against_unit_normal = front_face ? outward_unit_normal : -outward_unit_normal;
 }
 } // namespace hittable

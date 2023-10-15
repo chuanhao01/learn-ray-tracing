@@ -81,11 +81,13 @@ color::Color Camera::color_ray(const ray::Ray &r,
                                const hittable_list::Hittable_List &world) {
   hittable::Hit_Record rec;
   if (world.hit(r, interval::Interval(0, infinity), rec)) {
-    // Visualize the unit normal as rgb
-    return 0.5 * (rec.against_unit_normal + vec::Vec3(1, 1, 1));
+    vec::Vec3 diffuse_direction =
+        vec::random_unit_vector_on_hemisphere(rec.against_unit_normal);
+    auto diffuse_ray = ray::Ray(rec.p, diffuse_direction);
+    return 0.5 * color_ray(ray::Ray(rec.p, diffuse_direction), world);
   }
   // If the ray does not hit anything, visualize as y value from white to blue
-  auto unit_direction = vec::unit_vector(r.direction());
+  auto unit_direction = vec::unit_vector(r.get_direction());
   auto a = 0.5 * (unit_direction.y() + 1.0);
   return (1 - a) * color::Color(1.0, 1.0, 1.0) +
          a * color::Color(0.5, 0.7, 1.0);
