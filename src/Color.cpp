@@ -14,8 +14,6 @@ void write_color(std::ostream &os, const Color &pixel_color,
   auto g = pixel_color.y();
   auto b = pixel_color.z();
 
-  //   std::cerr << "r " << r << "\n" << std::flush;
-
   auto scale = 1.0 / samples_per_pixel;
   r *= scale;
   g *= scale;

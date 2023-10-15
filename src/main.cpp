@@ -11,7 +11,8 @@ int engine() {
 
   // Camera
   camera::Camera cam;
-  // cam.image_width = 1000;
+  cam.image_width = 400;
+  cam.samples_per_pixel = 50;
 
   cam.render(world);
 
