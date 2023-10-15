@@ -8,29 +8,31 @@ int engine() {
   auto material_ground =
       std::make_shared<material::Lambertian>(color::Color(0.8, 0.8, 0.0));
   auto material_center =
-      std::make_shared<material::Lambertian>(color::Color(0.7, 0.3, 0.3));
+      std::make_shared<material::Lambertian>(color::Color(0.1, 0.2, 0.5));
   auto material_left =
       std::make_shared<material::Metal>(color::Color(0.8, 0.8, 0.8), 0);
   auto material_right =
-      std::make_shared<material::Metal>(color::Color(0.8, 0.6, 0.2), 0.9);
+      std::make_shared<material::Metal>(color::Color(0.8, 0.6, 0.2), 0.0);
   auto material_dielectric = std::make_shared<material::Dielectric>(1.5);
 
   world.add(std::make_shared<objects::Sphere>(vec::Point3(0, 0, -1), 0.5,
-                                              material_dielectric));
+                                              material_center));
   world.add(std::make_shared<objects::Sphere>(vec::Point3(1, 0, -1), 0.5,
                                               material_right));
+  world.add(std::make_shared<objects::Sphere>(vec::Point3(-1, 0, -1), -0.4,
+                                              material_dielectric));
   world.add(std::make_shared<objects::Sphere>(vec::Point3(-1, 0, -1), 0.5,
                                               material_dielectric));
-  world.add(std::make_shared<objects::Sphere>(vec::Point3(-5, 4, -10), 2,
-                                              material_center));
+  // world.add(std::make_shared<objects::Sphere>(vec::Point3(-5, 4, -10), 2,
+  //                                             material_center));
   world.add(std::make_shared<objects::Sphere>(vec::Point3(0, -100.5, -1), 100,
                                               material_ground));
 
   // Camera
   camera::Camera cam;
   cam.image_width = 400;
-  cam.samples_per_pixel = 50;
-  cam.max_depth = 20;
+  cam.samples_per_pixel = 40;
+  cam.max_depth = 10;
 
   cam.render(world);
 

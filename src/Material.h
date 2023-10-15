@@ -58,6 +58,8 @@ public:
 
 private:
   double index_of_refraction;
+
+  static double reflectance(double cosine, double refraction_ratio);
 };
 } // namespace material
 
