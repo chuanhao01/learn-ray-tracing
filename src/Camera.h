@@ -7,6 +7,13 @@
 #include "Vec3.h"
 
 namespace camera {
+/**
+ * @brief
+ * @param image_width Rendered image width in pixel count
+ * @param samples_per_pixel Count of random rendered rays per pixel
+ * @param max_depth Number of simulated bounces per ray
+ * @param fov Degree of FOV
+ */
 class Camera {
 public:
   // Variables user can set
@@ -14,10 +21,11 @@ public:
   int image_width = 400;
 
   double focal_length = 1.0;
-  double viewport_height = 2.0;
 
   int samples_per_pixel = 10;
   int max_depth = 10;
+
+  double fov = 90;
 
   vec::Vec3 center = vec::Vec3(0, 0, 0);
 
@@ -25,6 +33,7 @@ public:
 
 private:
   int image_height;
+  double viewport_height;
   double viewport_width;
 
   vec::Vec3 pixel_delta_u;

@@ -42,6 +42,9 @@ void Camera::render(const hittable_list::Hittable_List &world) {
 void Camera::init() {
   image_height = static_cast<int>(image_width / aspect_ratio);
 
+  auto theta = degrees_to_radians(fov);
+  auto h = tan(theta / 2);
+  viewport_height = h * 2 * focal_length;
   viewport_width =
       viewport_height * (static_cast<double>(image_width) / image_height);
 
