@@ -26,6 +26,8 @@ set( SOURCE_ONE_WEEKEND
     src/Constants.h
     src/Camera.h
     src/Camera.cpp
+    src/Material.h
+    src/Material.cpp
 )
 
 add_executable(ray-trace-engine ${SOURCE_ONE_WEEKEND})

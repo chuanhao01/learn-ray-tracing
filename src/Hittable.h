@@ -2,8 +2,15 @@
 #define HITTABLE_H
 
 #include "Interval.h"
+#include "Material.h"
 #include "Ray.h"
 #include "Vec3.h"
+
+#include <memory>
+
+namespace material {
+class Material;
+}
 
 namespace hittable {
 /**
@@ -21,6 +28,7 @@ public:
    */
   vec::Vec3 against_unit_normal;
   vec::Point3 p;
+  std::shared_ptr<material::Material> mat;
   double t;
   bool front_face;
 

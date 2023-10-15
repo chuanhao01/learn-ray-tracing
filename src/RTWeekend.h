@@ -19,6 +19,7 @@
 #include "Hittable.h"
 #include "Hittable_List.h"
 #include "Interval.h"
+#include "Material.h"
 #include "Objects.h"
 #include "Ray.h"
 #include "Vec3.h"
