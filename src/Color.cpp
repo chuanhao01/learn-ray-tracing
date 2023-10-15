@@ -1,9 +1,15 @@
 #include "Color.h"
 #include "Interval.h"
 
+#include <cmath>
 #include <iostream>
 
 namespace color {
+
+double linear_to_gamma(double linear_component) {
+  return std::sqrt(linear_component);
+}
+
 /**
  * Take a color pixel and prints out the rgb values to cout
  */
@@ -18,6 +24,10 @@ void write_color(std::ostream &os, const Color &pixel_color,
   r *= scale;
   g *= scale;
   b *= scale;
+
+  r = linear_to_gamma(r);
+  g = linear_to_gamma(g);
+  b = linear_to_gamma(b);
 
   static const interval::Interval intensity(0.0, 0.999);
 
