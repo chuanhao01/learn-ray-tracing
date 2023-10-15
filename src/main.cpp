@@ -12,7 +12,8 @@ int engine() {
   // Camera
   camera::Camera cam;
   cam.image_width = 400;
-  cam.samples_per_pixel = 50;
+  cam.samples_per_pixel = 100;
+  cam.max_depth = 50;
 
   cam.render(world);
 

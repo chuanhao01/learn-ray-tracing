@@ -17,6 +17,7 @@ public:
   double viewport_height = 2.0;
 
   int samples_per_pixel = 10;
+  int max_depth = 10;
 
   vec::Vec3 center = vec::Vec3(0, 0, 0);
 
@@ -36,7 +37,7 @@ private:
 
   vec::Point3 pixel_sample_square();
 
-  color::Color color_ray(const ray::Ray &r,
+  color::Color color_ray(const ray::Ray &r, int max_depth,
                          const hittable_list::Hittable_List &world);
 };
 } // namespace camera

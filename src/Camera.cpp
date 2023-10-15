@@ -27,7 +27,7 @@ void Camera::render(const hittable_list::Hittable_List &world) {
       color::Color pixel_color(0, 0, 0);
       for (int sample = 0; sample < samples_per_pixel; sample++) {
         ray::Ray r = get_ray(j, i);
-        pixel_color += color_ray(r, world);
+        pixel_color += color_ray(r, max_depth, world);
       }
 
       color::write_color(std::cout, pixel_color, samples_per_pixel);
@@ -77,14 +77,25 @@ vec::Point3 Camera::pixel_sample_square() {
   return x * pixel_delta_u + y * pixel_delta_v;
 }
 
-color::Color Camera::color_ray(const ray::Ray &r,
+color::Color Camera::color_ray(const ray::Ray &r, int max_depth,
                                const hittable_list::Hittable_List &world) {
+  // If reached max ray depth, return black (no light)
+  if (max_depth <= 0) {
+    return color::Color(0, 0, 0);
+  }
+
   hittable::Hit_Record rec;
-  if (world.hit(r, interval::Interval(0, infinity), rec)) {
+  /**
+   * Subtle rounding error, t interval to be larger than treshold as light could
+   * bounch right below the surface
+   */
+  if (world.hit(r, interval::Interval(0.001, infinity), rec)) {
+    // vec::Vec3 diffuse_direction =
+    //     vec::random_unit_vector_on_hemisphere(rec.against_unit_normal);
     vec::Vec3 diffuse_direction =
-        vec::random_unit_vector_on_hemisphere(rec.against_unit_normal);
-    auto diffuse_ray = ray::Ray(rec.p, diffuse_direction);
-    return 0.5 * color_ray(ray::Ray(rec.p, diffuse_direction), world);
+        rec.against_unit_normal + vec::random_unit_vector_in_unit_sphere();
+    return 0.5 *
+           color_ray(ray::Ray(rec.p, diffuse_direction), max_depth - 1, world);
   }
   // If the ray does not hit anything, visualize as y value from white to blue
   auto unit_direction = vec::unit_vector(r.get_direction());
