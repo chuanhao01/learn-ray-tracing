@@ -14,15 +14,6 @@ Vec3 Vec3::random(double min, double max) {
               random_double(min, max));
 }
 
-Vec3 Vec3::random_in_unit_sphere() {
-  while (true) {
-    auto v = Vec3::random(-1, 1);
-    if (v.length_squared() < 1) {
-      return v;
-    }
-  }
-}
-
 Vec3 &Vec3::operator+=(const Vec3 &v) {
   e[0] += v[0];
   e[1] += v[1];
@@ -126,8 +117,21 @@ Vec3 unit_vector(const Vec3 &v) {
   return nv / nv.length();
 }
 
+Vec3 random_in_unit_sphere() {
+  while (true) {
+    auto v = Vec3::random(-1, 1);
+    if (v.length_squared() < 1) {
+      return v;
+    }
+  }
+}
+
+Vec3 random_in_unit_disk() {
+  return Vec3(random_double(-1, 1), random_double(-1, 1), 0);
+}
+
 Vec3 random_unit_vector_in_unit_sphere() {
-  return unit_vector(Vec3::random_in_unit_sphere());
+  return unit_vector(random_in_unit_sphere());
 }
 
 Vec3 random_unit_vector_on_hemisphere(const Vec3 &unit_normal) {

@@ -33,6 +33,9 @@ public:
   vec::Point3 look_at = vec::Point3(0, 0, -1);
   vec::Vec3 v_up = vec::Vec3(0, 1, 0);
 
+  double focus_angle = 0;
+  double focus_distance = 10;
+
   void render(const hittable_list::Hittable_List &world);
 
 private:
@@ -46,12 +49,16 @@ private:
   vec::Vec3 pixel_delta_u;
   vec::Vec3 pixel_delta_v;
 
+  vec::Vec3 defocus_disk_u;
+  vec::Vec3 defocus_disk_v;
+
   vec::Point3 pixel00_loc;
 
   void init();
   ray::Ray get_ray(double j, double i);
 
   vec::Point3 pixel_sample_square();
+  vec::Point3 defocus_disk_sample();
 
   color::Color color_ray(const ray::Ray &r, int max_depth,
                          const hittable_list::Hittable_List &world);
