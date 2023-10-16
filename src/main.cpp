@@ -31,7 +31,7 @@ int engine() {
   auto R = cos(PI / 4);
 
   auto mat_blue = std::make_shared<material::Lambertian>(color::Color(0, 0, 1));
-  auto mat_red = std::make_shared<material::Metal>(color::Color(1, 0, 0), 0);
+  auto mat_red = std::make_shared<material::Lambertian>(color::Color(1, 0, 0));
   world2.add(
       std::make_shared<objects::Sphere>(vec::Point3(-R, 0, -1), R, mat_blue));
   world2.add(
@@ -40,11 +40,15 @@ int engine() {
   // Camera
   camera::Camera cam;
   cam.image_width = 400;
-  // cam.focal_length = 0.5;
-  cam.samples_per_pixel = 40;
-  cam.max_depth = 10;
+  cam.samples_per_pixel = 20;
+  cam.max_depth = 20;
 
-  cam.render(world2);
+  // cam.fov = 20;
+  // cam.look_from = vec::Point3(-2, 2, 1);
+  // cam.look_at = vec::Point3(0, 0, -1);
+  cam.v_up = vec::Vec3(1, 1, 0);
+
+  cam.render(world1);
 
   return 0;
 }

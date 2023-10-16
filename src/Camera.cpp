@@ -42,19 +42,27 @@ void Camera::render(const hittable_list::Hittable_List &world) {
 void Camera::init() {
   image_height = static_cast<int>(image_width / aspect_ratio);
 
+  center = look_from;
+  auto camera_direction = look_at - look_from;
+
+  auto focal_length = (camera_direction).length();
   auto theta = degrees_to_radians(fov);
   auto h = tan(theta / 2);
   viewport_height = h * 2 * focal_length;
   viewport_width =
       viewport_height * (static_cast<double>(image_width) / image_height);
 
-  auto delta_u = vec::Vec3(viewport_width, 0, 0);
-  auto delta_v = vec::Vec3(0, -viewport_height, 0);
+  w = vec::unit_vector(-camera_direction);
+  u = vec::unit_vector(vec::cross(v_up, w));
+  v = vec::unit_vector(vec::cross(w, u));
+
+  auto delta_u = u * viewport_width;
+  auto delta_v = -v * viewport_height;
   pixel_delta_u = delta_u / image_width;
   pixel_delta_v = delta_v / image_height;
 
   auto upper_left_corner =
-      center - vec::Vec3(0, 0, focal_length) - 0.5 * (delta_u + delta_v);
+      center - focal_length * w - 0.5 * (delta_u + delta_v);
   pixel00_loc = upper_left_corner + 0.5 * (pixel_delta_u + pixel_delta_v);
 }
 

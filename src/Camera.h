@@ -13,6 +13,10 @@ namespace camera {
  * @param samples_per_pixel Count of random rendered rays per pixel
  * @param max_depth Number of simulated bounces per ray
  * @param fov Degree of FOV
+ * @param look_from Center point of camera
+ * @param look_at Point where camera points at (Where the image plane is at)
+ * @param v_up Vector to specify the v plane in relation to w (direction of
+ * camera) Tilting the plane, makes the camera view tilt
  */
 class Camera {
 public:
@@ -20,14 +24,14 @@ public:
   double aspect_ratio = 16.0 / 9.0;
   int image_width = 400;
 
-  double focal_length = 1.0;
-
   int samples_per_pixel = 10;
   int max_depth = 10;
 
   double fov = 90;
 
-  vec::Vec3 center = vec::Vec3(0, 0, 0);
+  vec::Point3 look_from = vec::Point3(0, 0, 0);
+  vec::Point3 look_at = vec::Point3(0, 0, -1);
+  vec::Vec3 v_up = vec::Vec3(0, 1, 0);
 
   void render(const hittable_list::Hittable_List &world);
 
@@ -35,6 +39,9 @@ private:
   int image_height;
   double viewport_height;
   double viewport_width;
+
+  vec::Vec3 u, v, w;
+  vec::Vec3 center;
 
   vec::Vec3 pixel_delta_u;
   vec::Vec3 pixel_delta_v;
