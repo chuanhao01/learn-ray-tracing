@@ -30,4 +30,4 @@ set( SOURCE_ONE_WEEKEND
     src/Material.cpp
 )
 
-add_executable(ray-trace-engine ${SOURCE_ONE_WEEKEND})
+add_executable(raytracer ${SOURCE_ONE_WEEKEND})
