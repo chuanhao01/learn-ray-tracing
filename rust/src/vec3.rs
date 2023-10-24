@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign, IndexMut},
 };
 
 // Holds a 3D vector in the form of (x, y, z)
@@ -43,98 +43,105 @@ impl Index<usize> for Vec3 {
     }
 }
 
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.e[index]
+    }
+}
+
 impl Display for Vec3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Vec3: ({}, {}, {})", self[0], self[1], self[2])
     }
 }
 
-// impl AddAssign for Vec3 {
-//     fn add_assign(&mut self, rhs: Self) {
-//         self.x += rhs.x;
-//         self.y += rhs.y;
-//         self.z += rhs.z;
-//     }
-// }
-// impl Add for Vec3 {
-//     type Output = Vec3;
-//     fn add(self, rhs: Self) -> Self::Output {
-//         let mut v = self;
-//         v += rhs;
-//         v
-//     }
-// }
 
-// impl SubAssign for Vec3 {
-//     fn sub_assign(&mut self, rhs: Self) {
-//         self.x -= rhs.x;
-//         self.y -= rhs.y;
-//         self.z -= rhs.z;
-//     }
-// }
-// impl Sub for Vec3 {
-//     type Output = Vec3;
-//     fn sub(self, rhs: Self) -> Self::Output {
-//         let mut v = self;
-//         v -= rhs;
-//         v
-//     }
-// }
+impl AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.e[0] += rhs.e[0];
+        self.e[1] += rhs.e[1];
+        self.e[2] += rhs.e[2];
+    }
+}
+impl Add for Vec3 {
+    type Output = Vec3;
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut v = self;
+        v += rhs;
+        v
+    }
+}
+
+impl SubAssign for Vec3 {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.e[0] -= rhs.e[0];
+        self.e[1] -= rhs.e[1];
+        self.e[2] -= rhs.e[2];
+    }
+}
+impl Sub for Vec3 {
+    type Output = Vec3;
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut v = self;
+        v -= rhs;
+        v
+    }
+}
 
 // // Hadamard product for Vec
-// impl MulAssign for Vec3 {
-//     fn mul_assign(&mut self, rhs: Self) {
-//         self.x *= rhs.x;
-//         self.y *= rhs.y;
-//         self.z *= rhs.z;
-//     }
-// }
-// impl Mul for Vec3 {
-//     type Output = Vec3;
-//     fn mul(self, rhs: Self) -> Self::Output {
-//         let mut v = self;
-//         v *= rhs;
-//         v
-//     }
-// }
+impl MulAssign for Vec3 {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.e[0] *= rhs.e[0];
+        self.e[1] *= rhs.e[1];
+        self.e[2] *= rhs.e[2];
+    }
+}
+impl Mul for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let mut v = self;
+        v *= rhs;
+        v
+    }
+}
 
-// impl MulAssign<f64> for Vec3 {
-//     fn mul_assign(&mut self, rhs: f64) {
-//         self.x *= rhs;
-//         self.y *= rhs;
-//         self.z *= rhs;
-//     }
-// }
-// impl Mul<f64> for Vec3 {
-//     type Output = Vec3;
-//     fn mul(self, rhs: f64) -> Self::Output {
-//         let mut v = self;
-//         v *= rhs;
-//         v
-//     }
-// }
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.e[0] *= rhs;
+        self.e[1] *= rhs;
+        self.e[2] *= rhs;
+    }
+}
+impl Mul<f64> for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: f64) -> Self::Output {
+        let mut v = self;
+        v *= rhs;
+        v
+    }
+}
 
-// // Implement for left side f64 * Vec3
-// impl Mul<Vec3> for f64 {
-//     type Output = Vec3;
-//     fn mul(self, rhs: Vec3) -> Self::Output {
-//         rhs * self
-//     }
-// }
+// Implement for left side f64 * Vec3
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        rhs * self
+    }
+}
 
-// impl DivAssign<f64> for Vec3 {
-//     fn div_assign(&mut self, rhs: f64) {
-//         *self *= 1.0 / rhs;
-//     }
-// }
-// impl Div<f64> for Vec3 {
-//     type Output = Vec3;
-//     fn div(self, rhs: f64) -> Self::Output {
-//         let mut v = self;
-//         v /= rhs;
-//         v
-//     }
-// }
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, rhs: f64) {
+        *self *= 1.0 / rhs;
+    }
+}
+impl Div<f64> for Vec3 {
+    type Output = Vec3;
+    fn div(self, rhs: f64) -> Self::Output {
+        let mut v = self;
+        v /= rhs;
+        v
+    }
+}
 
 #[cfg(test)]
 mod test {
@@ -180,18 +187,18 @@ mod test {
         let mut v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         v1 += v2;
-        assert_eq!(v1.x, 3.0);
-        assert_eq!(v1.y, 4.0);
-        assert_eq!(v1.z, 5.0);
+        assert_eq!(v1.x(), 3.0);
+        assert_eq!(v1.y(), 4.0);
+        assert_eq!(v1.z(), 5.0);
     }
     #[test]
     fn test_vec3_add() {
         let v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         let v = v1 + v2;
-        assert_eq!(v.x, 3.0);
-        assert_eq!(v.y, 4.0);
-        assert_eq!(v.z, 5.0);
+        assert_eq!(v.x(), 3.0);
+        assert_eq!(v.y(), 4.0);
+        assert_eq!(v.z(), 5.0);
     }
 
     #[test]
@@ -199,18 +206,18 @@ mod test {
         let mut v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         v1 -= v2;
-        assert_eq!(v1.x, -1.0);
-        assert_eq!(v1.y, 0.0);
-        assert_eq!(v1.z, 1.0);
+        assert_eq!(v1.x(), -1.0);
+        assert_eq!(v1.y(), 0.0);
+        assert_eq!(v1.z(), 1.0);
     }
     #[test]
     fn test_vec3_sub() {
         let v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         let v = v1 - v2;
-        assert_eq!(v.x, -1.0);
-        assert_eq!(v.y, 0.0);
-        assert_eq!(v.z, 1.0);
+        assert_eq!(v.x(), -1.0);
+        assert_eq!(v.y(), 0.0);
+        assert_eq!(v.z(), 1.0);
     }
 
     #[test]
@@ -218,60 +225,60 @@ mod test {
         let mut v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         v1 *= v2;
-        assert_eq!(v1.x, 2.0);
-        assert_eq!(v1.y, 4.0);
-        assert_eq!(v1.z, 6.0);
+        assert_eq!(v1.x(), 2.0);
+        assert_eq!(v1.y(), 4.0);
+        assert_eq!(v1.z(), 6.0);
     }
     #[test]
     fn test_vec3_mul() {
         let v1 = Vec3::new_int(1, 2, 3);
         let v2 = Vec3::new_int(2, 2, 2);
         let r = v1 * v2;
-        assert_eq!(r.x, 2.0);
-        assert_eq!(r.y, 4.0);
-        assert_eq!(r.z, 6.0);
+        assert_eq!(r.x(), 2.0);
+        assert_eq!(r.y(), 4.0);
+        assert_eq!(r.z(), 6.0);
     }
 
     #[test]
     fn test_vec3_mul_assign_f64() {
         let mut v1 = Vec3::new_int(1, 2, 3);
         v1 *= 2.0;
-        assert_eq!(v1.x, 2.0);
-        assert_eq!(v1.y, 4.0);
-        assert_eq!(v1.z, 6.0);
+        assert_eq!(v1.x(), 2.0);
+        assert_eq!(v1.y(), 4.0);
+        assert_eq!(v1.z(), 6.0);
     }
     #[test]
     fn test_vec3_mul_f64() {
         let v1 = Vec3::new_int(1, 2, 3);
         let v = v1 * 2.0;
-        assert_eq!(v.x, 2.0);
-        assert_eq!(v.y, 4.0);
-        assert_eq!(v.z, 6.0);
+        assert_eq!(v.x(), 2.0);
+        assert_eq!(v.y(), 4.0);
+        assert_eq!(v.z(), 6.0);
     }
 
     #[test]
     fn test_vec3_mul_f64_vec3() {
         let v1 = Vec3::new_int(1, 2, 3);
         let v = 2.0 * v1;
-        assert_eq!(v.x, 2.0);
-        assert_eq!(v.y, 4.0);
-        assert_eq!(v.z, 6.0);
+        assert_eq!(v.x(), 2.0);
+        assert_eq!(v.y(), 4.0);
+        assert_eq!(v.z(), 6.0);
     }
 
     #[test]
     fn test_vec3_div_assign() {
         let mut v1 = Vec3::new_int(1, 2, 4);
         v1 /= 2.0;
-        assert_eq!(v1.x, 0.5);
-        assert_eq!(v1.y, 1.0);
-        assert_eq!(v1.z, 2.0);
+        assert_eq!(v1.x(), 0.5);
+        assert_eq!(v1.y(), 1.0);
+        assert_eq!(v1.z(), 2.0);
     }
     #[test]
     fn test_vec3_div() {
         let v1 = Vec3::new_int(1, 2, 4);
         let v = v1 / 2.0;
-        assert_eq!(v.x, 0.5);
-        assert_eq!(v.y, 1.0);
-        assert_eq!(v.z, 2.0);
+        assert_eq!(v.x(), 0.5);
+        assert_eq!(v.y(), 1.0);
+        assert_eq!(v.z(), 2.0);
     }
 }
