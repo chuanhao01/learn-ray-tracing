@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign, IndexMut},
+    ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 // Holds a 3D vector in the form of (x, y, z)
@@ -9,6 +9,7 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
+    // Init
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { e: [x, y, z] }
     }
@@ -16,6 +17,7 @@ impl Vec3 {
         Vec3::new(x as f64, y as f64, z as f64)
     }
 
+    // Getters
     pub fn x(&self) -> f64 {
         self.e[0]
     }
@@ -25,14 +27,12 @@ impl Vec3 {
     pub fn z(&self) -> f64 {
         self.e[2]
     }
-}
 
-// Operator overload for Vec3
-
-impl Neg for Vec3 {
-    type Output = Vec3;
-    fn neg(self) -> Self::Output {
-        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
+    pub fn length_squared(&self) -> f64 {
+        self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
+    }
+    pub fn length(&self) -> f64 {
+        self.length_squared().sqrt()
     }
 }
 
@@ -42,10 +42,17 @@ impl Index<usize> for Vec3 {
         &self.e[index]
     }
 }
-
 impl IndexMut<usize> for Vec3 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.e[index]
+    }
+}
+
+// Operator overload for Vec3
+impl Neg for Vec3 {
+    type Output = Vec3;
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
     }
 }
 
@@ -54,7 +61,6 @@ impl Display for Vec3 {
         write!(f, "Vec3: ({}, {}, {})", self[0], self[1], self[2])
     }
 }
-
 
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, rhs: Self) {
@@ -143,6 +149,18 @@ impl Div<f64> for Vec3 {
     }
 }
 
+// Public fns
+pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
+    u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
+}
+pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+    Vec3::new(
+        u.e[1] * v.e[2] - u.e[2] * v.e[1],
+        u.e[2] * v.e[0] - u.e[0] * v.e[2],
+        u.e[0] * v.e[1] - u.e[1] * v.e[0],
+    )
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -173,6 +191,18 @@ mod test {
         assert_eq!(v.z(), 1.0);
     }
 
+    #[test]
+    fn test_vec3_length_squared() {
+        let v = Vec3::new_int(1, 1, 1);
+        assert_eq!(v.length_squared(), 3.0);
+    }
+    #[test]
+    fn test_vec3_length() {
+        let v = Vec3::new_int(1, 1, 1);
+        assert_eq!(v.length(), 3.0_f64.sqrt());
+    }
+
+    // Vec3 Operator Overload Tests
     #[test]
     fn test_vec3_neg() {
         let v1 = Vec3::new_int(1, 2, 4);
@@ -280,5 +310,22 @@ mod test {
         assert_eq!(v.x(), 0.5);
         assert_eq!(v.y(), 1.0);
         assert_eq!(v.z(), 2.0);
+    }
+
+    // Public Functions Tests
+    #[test]
+    fn test_dot() {
+        let u = Vec3::new_int(1, 1, 1);
+        let v = Vec3::new_int(2, 2, 2);
+        assert_eq!(dot(&u, &v), 6.0);
+    }
+    #[test]
+    fn test_cross() {
+        let u = Vec3::new_int(1, 1, 1);
+        let v = Vec3::new_int(-2, 2, 2);
+        let r = cross(&u, &v);
+        assert_eq!(r.x(), 0.0);
+        assert_eq!(r.y(), -4.0);
+        assert_eq!(r.z(), 4.0);
     }
 }
