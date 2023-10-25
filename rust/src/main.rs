@@ -1,4 +1,4 @@
-use rust_simple_raytracer::Vec3;
+use rust_simple_raytracer::{CameraParams, Vec3};
 
 fn main() {
     println!("Hello, world!");
@@ -6,4 +6,5 @@ fn main() {
     println!("{}", v[1] * 2.0);
     println!("{}", v[1]);
     println!("{}", v);
+    let mut c = CameraParams::default();
 }

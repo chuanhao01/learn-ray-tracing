@@ -44,6 +44,18 @@ impl Vec3 {
     pub fn unit_vector(&self) -> Self {
         self.clone() / self.length()
     }
+
+    // Public fns
+    pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
+        u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
+    }
+    pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+        Vec3::new(
+            u.e[1] * v.e[2] - u.e[2] * v.e[1],
+            u.e[2] * v.e[0] - u.e[0] * v.e[2],
+            u.e[0] * v.e[1] - u.e[1] * v.e[0],
+        )
+    }
 }
 
 impl Clone for Vec3 {
@@ -177,18 +189,6 @@ impl PartialEq for Vec3 {
     }
 }
 impl Eq for Vec3 {}
-
-// Public fns
-pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
-    u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
-}
-pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
-    Vec3::new(
-        u.e[1] * v.e[2] - u.e[2] * v.e[1],
-        u.e[2] * v.e[0] - u.e[0] * v.e[2],
-        u.e[0] * v.e[1] - u.e[1] * v.e[0],
-    )
-}
 
 #[cfg(test)]
 mod test {
@@ -338,13 +338,13 @@ mod test {
     fn test_dot() {
         let u = Vec3::new_int(1, 1, 1);
         let v = Vec3::new_int(2, 2, 2);
-        assert_eq!(dot(&u, &v), 6.0);
+        assert_eq!(Vec3::dot(&u, &v), 6.0);
     }
     #[test]
     fn test_cross() {
         let u = Vec3::new_int(1, 1, 1);
         let v = Vec3::new_int(-2, 2, 2);
-        let r = cross(&u, &v);
+        let r = Vec3::cross(&u, &v);
         assert_eq!(r, Vec3::new_int(0, -4, 4));
     }
 }
