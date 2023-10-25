@@ -13,7 +13,7 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn at(&self) -> Vec3 {
+    pub fn at(&self, t: f64) -> Vec3 {
         self.origin.clone() + t * self.direction.clone()
     }
 }
@@ -25,5 +25,19 @@ impl Display for Ray {
             "Ray:\nOrigin: {}\nDirection: {}",
             self.origin, self.direction
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_ray_at() {
+        let r = Ray {
+            origin: Vec3::new_int(0, 0, 0),
+            direction: Vec3::new_int(1, 1, 1),
+        };
+        assert_eq!(r.at(3_f64), Vec3::new_int(3, 3, 3));
     }
 }

@@ -1,3 +1,9 @@
+use rand::random;
+
+use crate::helper::{random_f64, write_color};
+
+use super::ray::Ray;
+
 use super::helper::from_fdegree_to_fradian;
 
 use super::vec3::Vec3;
@@ -38,6 +44,8 @@ pub struct Camera {
 
     samples_per_pixel: i64,
     max_depth: i64,
+
+    focus_angle: f64,
 
     /// Point of the Camera center (Same as [CameraParams.look_from])
     center: Vec3,
@@ -114,6 +122,7 @@ impl Camera {
             aspect_ratio: camera_params.aspect_ratio,
             samples_per_pixel: camera_params.samples_per_pixel,
             max_depth: camera_params.max_depth,
+            focus_angle: camera_params.focus_angle,
             center: camera_params.look_from.clone(),
             u: u.clone(),
             v: v.clone(),
@@ -125,5 +134,45 @@ impl Camera {
             defocus_disk_v: defocus_disk_v.clone(),
         }
     }
-    // pub fn render() {}
+
+    pub fn render(&self) {
+        println!("P3");
+        println!("{} {}", self.image_width, self.image_height);
+        println!("255");
+
+        for y in 0..self.image_height {
+            // eprintln!("\r Scanlines remaining: {}", self.image_height - y - 1);
+            for x in 0..self.image_width {
+                let mut pixel_color = Vec3::new_int(0, 0, 0);
+                for _ in 0..self.samples_per_pixel {
+                    let ray = self.get_ray(y, x);
+                    pixel_color += self.color_ray(&ray);
+                }
+                write_color(&pixel_color, self.samples_per_pixel);
+            }
+        }
+    }
+
+    /// Takes
+    fn color_ray(&self, ray: &Ray) -> Vec3{
+        let ray_direction_unit = ray.direction.unit_vector();
+        let a = ray_direction_unit.y();
+        (1_f64 - a) * Vec3::new(1_f64, 1_f64, 1_f64) + a * Vec3::new(0.5_f64, 0.7_f64, 1.0_f64)
+    }
+    fn get_ray(&self, y: i64, x: i64) -> Ray {
+        let pixel_center = self.pixel_00_loc.clone() + (y as f64) * self.pixel_delta_v.clone() + (x as f64) * self.pixel_delta_u.clone();
+        let pixel_center_sample = pixel_center + self.pixel_square_sample();
+
+        let ray_origin = if self.focus_angle > 0_f64 {self.defocus_disk_sample()} else {self.center.clone()};
+        let ray_direction = pixel_center_sample.clone() - ray_origin.clone();
+        Ray {origin: ray_origin, direction: ray_direction}
+    }
+    /// Samples a random point in the pixel square
+    fn pixel_square_sample(&self) -> Vec3 {
+        self.pixel_delta_u.clone() * random_f64(-0.5_f64, 0.5_f64) + self.pixel_delta_v.clone() * random_f64(-0.5_f64, 0.5_f64)
+    }
+    /// Samples a origin point from the defocus disk
+    fn defocus_disk_sample(&self) -> Vec3 {
+        self.defocus_disk_u.clone() * random_f64(-1_f64, 1_f64) + self.defocus_disk_v.clone() * random_f64(-1_f64, 1_f64)
+    }
 }
