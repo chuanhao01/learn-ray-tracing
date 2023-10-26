@@ -5,6 +5,8 @@ use rust_simple_raytracer::{Camera, CameraParams, Hittables, Lambertain, Materia
 fn main() {
     let camera_params = CameraParams {
         // samples_per_pixel: 1,
+        samples_per_pixel: 500,
+        max_depth: 500,
         ..Default::default()
     };
     let camera = Camera::new(camera_params);

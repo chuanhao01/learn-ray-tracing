@@ -34,9 +34,9 @@ impl Hittable for Sphere {
         let sqrt_discriminant = discriminant.sqrt();
         let root = (-b - sqrt_discriminant) / a;
         let root = if !valid_t_interval.surrounds(root) {
-            root
-        } else {
             (-b + sqrt_discriminant) / a
+        } else {
+            root
         };
         if !valid_t_interval.surrounds(root) {
             return None;
