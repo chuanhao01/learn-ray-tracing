@@ -7,4 +7,7 @@ pub mod ray;
 pub mod vec3;
 
 pub use camera::{Camera, CameraParams};
+pub use hittable::{HitRecord, Hittable};
+pub use materials::Materials;
+pub use objects::Objects;
 pub use vec3::Vec3;
