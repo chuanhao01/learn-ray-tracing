@@ -25,6 +25,28 @@ pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
     )
 }
 
+/// Simple structure for representing Intervals
+///
+/// There is a way to do it in rust with std::ops::Range,
+/// but I don't know and truct myself to use it properly
+pub struct Interval {
+    /// Left bound
+    pub l: f64,
+    /// Right bound
+    pub r: f64,
+}
+
+impl Interval {
+    /// Checks if provided x is `l <= x <= r`
+    pub fn contains(&self, x: f64) -> bool {
+        self.l <= x && x <= self.r
+    }
+    /// Checks if provided x is `l < x < r`
+    pub fn surrounds(&self, x: f64) -> bool {
+        self.l < x && x < self.r
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
