@@ -2,8 +2,7 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
-use super::helper::write_color;
-
+use super::helper::color_to_rgb;
 use super::ray::Ray;
 
 use super::helper::from_fdegree_to_fradian;
@@ -154,12 +153,14 @@ impl Camera {
                     let ray = self.get_ray(y, x);
                     pixel_color += self.color_ray(&ray);
                 }
-                write_color(&pixel_color, self.samples_per_pixel);
+                let (pixel_r, pixel_g, pixel_b) =
+                    color_to_rgb(&pixel_color, self.samples_per_pixel);
+                println!("{}, {}, {}", pixel_r, pixel_g, pixel_b);
             }
         }
     }
 
-    /// Takes
+    /// Takes a ray and simulates ray tracing on it
     fn color_ray(&self, ray: &Ray) -> Vec3 {
         // Interpolation of y value for sky color
         let ray_direction_unit = ray.direction.unit_vector();
