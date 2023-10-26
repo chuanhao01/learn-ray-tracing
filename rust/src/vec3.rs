@@ -18,17 +18,22 @@ impl Vec3 {
         Vec3::new(x as f64, y as f64, z as f64)
     }
 
-    // Getter for x
+    /// Getter for x
     pub fn x(&self) -> f64 {
         self.e[0]
     }
-    // Getter for y
+    /// Getter for y
     pub fn y(&self) -> f64 {
         self.e[1]
     }
-    // Getter for z
+    /// Getter for z
     pub fn z(&self) -> f64 {
         self.e[2]
+    }
+
+    /// Returns the vector as a tuple for easy destructuring
+    pub fn tuple(&self) -> (f64, f64, f64) {
+        (self.e[0], self.e[1], self.e[2])
     }
 
     /// Intermediate calculation for length of vector squared
