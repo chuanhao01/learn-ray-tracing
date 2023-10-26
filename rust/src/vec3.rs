@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use rand::{thread_rng, Rng};
+
 // Holds a 3D vector in the form of (x, y, z)
 pub struct Vec3 {
     e: [f64; 3],
@@ -50,6 +52,11 @@ impl Vec3 {
         self.clone() / self.length()
     }
 
+    pub fn near_zero(&self) -> bool {
+        let s = -1e8_f64;
+        self.e[0] < s && self.e[1] < s && self.e[2] < s
+    }
+
     // Public fns
     pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
         u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
@@ -61,9 +68,19 @@ impl Vec3 {
             u.e[0] * v.e[1] - u.e[1] * v.e[0],
         )
     }
-
-    pub random_unit_vector_in_unit_sphere(){
-
+    /// Generates a random vector with x, y and z in (min, max)
+    pub fn random(min: f64, max:f64) -> Vec3{
+        let mut rng = thread_rng();
+        Vec3::new(rng.gen_range(min..max), rng.gen_range(min..max), rng.gen_range(min..max))
+    }
+    /// Samples a random vector inside a unit sphere with, Center(0, 0, 0) radius=1
+    pub fn random_vector_in_unit_sphere() -> Vec3{
+        loop {
+            let v = Vec3::random(-1_f64, 1_f64);
+            if v.length_squared() < 1_f64{
+                break v
+            }
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::helper::Interval;
-use crate::materials::Scatterable;
+use crate::materials::{Scattered, Scatterable};
 use crate::ray::Ray;
 use crate::HitRecord;
 use crate::Hittable;
@@ -10,14 +10,14 @@ use super::Materials;
 
 use super::Vec3;
 
-struct Sphere {
-    center: Vec3,
-    radius: f64,
-    material: Rc<Materials>,
+pub struct Sphere {
+    pub center: Vec3,
+    pub radius: f64,
+    pub material: Rc<Materials>,
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Vec3> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Scattered> {
         let a_minus_c = _ray.origin.clone() - self.center.clone();
 
         let a = _ray.direction.length_squared();
@@ -47,6 +47,14 @@ impl Hittable for Sphere {
     }
 }
 
-pub enum Objects {
-    Sphere,
+pub enum Hittables {
+    Sphere(Sphere),
+}
+
+impl Hittable for Hittables{
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Scattered> {
+        match self {
+            Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval)
+        }
+    }
 }
