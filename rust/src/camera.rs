@@ -1,6 +1,8 @@
-use rand::random;
+use indicatif::ProgressBar;
+use rand::prelude::thread_rng;
+use rand::Rng;
 
-use crate::helper::{random_f64, write_color};
+use super::helper::write_color;
 
 use super::ray::Ray;
 
@@ -141,8 +143,11 @@ impl Camera {
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
 
+        let progress_bar = ProgressBar::new(self.image_height as u64);
+
         for y in 0..self.image_height {
-            eprintln!("\r Scanlines remaining: {}", self.image_height - y - 1);
+            // eprintln!("\r Scanlines remaining: {}", self.image_height - y - 1);
+            progress_bar.inc(1);
             for x in 0..self.image_width {
                 let mut pixel_color = Vec3::new_int(0, 0, 0);
                 for _ in 0..self.samples_per_pixel {
@@ -180,12 +185,14 @@ impl Camera {
     }
     /// Samples a random point in the pixel square
     fn pixel_square_sample(&self) -> Vec3 {
-        self.pixel_delta_u.clone() * random_f64(-0.5_f64, 0.5_f64)
-            + self.pixel_delta_v.clone() * random_f64(-0.5_f64, 0.5_f64)
+        let mut rng = thread_rng();
+        self.pixel_delta_u.clone() * rng.gen_range(-0.5_f64..0.5_f64)
+            + self.pixel_delta_v.clone() * rng.gen_range(-0.5_f64..0.5_f64)
     }
     /// Samples a origin point from the defocus disk
     fn defocus_disk_sample(&self) -> Vec3 {
-        self.defocus_disk_u.clone() * random_f64(-1_f64, 1_f64)
-            + self.defocus_disk_v.clone() * random_f64(-1_f64, 1_f64)
+        let mut rng = thread_rng();
+        self.defocus_disk_u.clone() * rng.gen_range(-1_f64..1_f64)
+            + self.defocus_disk_v.clone() * rng.gen_range(-1_f64..1_f64)
     }
 }

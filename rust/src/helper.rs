@@ -1,7 +1,5 @@
 use std::f64::consts::PI;
 
-use rand::random;
-
 use super::Vec3;
 
 /// Converts a degree value into radians which we use internally
@@ -9,20 +7,11 @@ pub fn from_fdegree_to_fradian(degree: f64) -> f64 {
     degree * PI / 180_f64
 }
 
-/// Returns a random float with bounds [l, r)
-pub fn random_f64(l: f64, r: f64) -> f64 {
-    l + (r - l) * random::<f64>()
-}
-
 pub fn write_color(color: &Vec3, samples_per_pixel: i64) {
-    let r = color.x();
-    let g = color.y();
-    let b = color.z();
-
+    let c = color.clone();
     let scale = 1_f64 / samples_per_pixel as f64;
-    let r = r * scale;
-    let g = g * scale;
-    let b = b * scale;
+    let c = c * scale;
+    let (r, g, b) = c.tuple();
 
     let r = r.sqrt();
     let g = g.sqrt();
