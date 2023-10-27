@@ -6,7 +6,7 @@ pub struct Scattered {
     pub attenuation: Vec3,
     pub ray: Ray,
     /// t value of the ray used to scatter
-    pub t: f64
+    pub t: f64,
 }
 
 pub trait Scatterable {
@@ -32,7 +32,7 @@ impl Scatterable for Lambertain {
                 origin: hit_record.p.clone(),
                 direction: scattered_direction,
             },
-            t: hit_record.t
+            t: hit_record.t,
         })
     }
 }

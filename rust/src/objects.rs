@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::helper::Interval;
-use crate::materials::{Scattered, Scatterable};
+use crate::materials::{Scatterable, Scattered};
 use crate::ray::Ray;
 use crate::HitRecord;
 use crate::Hittable;
@@ -51,10 +51,10 @@ pub enum Hittables {
     Sphere(Sphere),
 }
 
-impl Hittable for Hittables{
+impl Hittable for Hittables {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Scattered> {
         match self {
-            Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval)
+            Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval),
         }
     }
 }

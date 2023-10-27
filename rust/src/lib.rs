@@ -9,6 +9,6 @@ pub mod vec3;
 pub use camera::{Camera, CameraParams};
 pub use helper::Interval;
 pub use hittable::{HitRecord, Hittable};
-pub use materials::{Materials, Scattered, Lambertain};
+pub use materials::{Lambertain, Materials, Scattered};
 pub use objects::{Hittables, Sphere};
 pub use vec3::Vec3;

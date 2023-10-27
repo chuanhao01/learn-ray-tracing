@@ -69,16 +69,20 @@ impl Vec3 {
         )
     }
     /// Generates a random vector with x, y and z in (min, max)
-    pub fn random(min: f64, max:f64) -> Vec3{
+    pub fn random(min: f64, max: f64) -> Vec3 {
         let mut rng = thread_rng();
-        Vec3::new(rng.gen_range(min..max), rng.gen_range(min..max), rng.gen_range(min..max))
+        Vec3::new(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        )
     }
     /// Samples a random vector inside a unit sphere with, Center(0, 0, 0) radius=1
-    pub fn random_vector_in_unit_sphere() -> Vec3{
+    pub fn random_vector_in_unit_sphere() -> Vec3 {
         loop {
             let v = Vec3::random(-1_f64, 1_f64);
-            if v.length_squared() < 1_f64{
-                break v
+            if v.length_squared() < 1_f64 {
+                break v;
             }
         }
     }

@@ -4,7 +4,7 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
-use crate::{Hittables, Hittable, Interval};
+use crate::{Hittable, Hittables, Interval};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -96,7 +96,7 @@ impl Default for CameraParams {
 
 impl Camera {
     pub fn new(camera_params: CameraParams) -> Self {
-        let image_height = (camera_params.image_width as f64/ camera_params.aspect_ratio) as i64;
+        let image_height = (camera_params.image_width as f64 / camera_params.aspect_ratio) as i64;
 
         let w = (camera_params.look_from.clone() - camera_params.look_at).unit_vector();
         let u = Vec3::cross(&camera_params.v_up, &w).unit_vector();
@@ -166,12 +166,18 @@ impl Camera {
 
     /// Takes a ray and simulates ray tracing on it
     fn color_ray(&self, ray: &Ray, world: &Vec<Hittables>, max_depth: i64) -> Vec3 {
-        if max_depth <= 0{
+        if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }
 
-        if let Some(scattered) = world.hit(ray, Interval { l: 0.001, r: INFINITY }) {
-            return scattered.attenuation * self.color_ray(&scattered.ray, world, max_depth-1);
+        if let Some(scattered) = world.hit(
+            ray,
+            Interval {
+                l: 0.001,
+                r: INFINITY,
+            },
+        ) {
+            return scattered.attenuation * self.color_ray(&scattered.ray, world, max_depth - 1);
         };
 
         // Interpolation of y value for sky color
