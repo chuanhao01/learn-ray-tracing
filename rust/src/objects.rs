@@ -17,7 +17,7 @@ pub struct Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Scattered> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let a_minus_c = _ray.origin.clone() - self.center.clone();
 
         let a = _ray.direction.length_squared();
@@ -42,8 +42,12 @@ impl Hittable for Sphere {
             return None;
         }
         let outward_normal_unit = (_ray.at(root) - self.center.clone()).unit_vector();
-        let hit_record = HitRecord::new(_ray, &outward_normal_unit, root);
-        self.material.scatter(_ray, &hit_record)
+        Some(HitRecord::new(
+            _ray,
+            &outward_normal_unit,
+            root,
+            Rc::clone(&self.material),
+        ))
     }
 }
 
@@ -52,7 +56,7 @@ pub enum Hittables {
 }
 
 impl Hittable for Hittables {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Scattered> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         match self {
             Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval),
         }

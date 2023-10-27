@@ -4,6 +4,7 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
+use crate::materials::Scatterable;
 use crate::{Hittable, Hittables, Interval};
 
 use super::helper::color_to_rgb;
@@ -165,25 +166,36 @@ impl Camera {
     }
 
     /// Takes a ray and simulates ray tracing on it
-    fn color_ray(&self, ray: &Ray, world: &Vec<Hittables>, max_depth: i64) -> Vec3 {
+    #[allow(clippy::only_used_in_recursion)]
+    fn color_ray(&self, _ray: &Ray, _world: &Vec<Hittables>, max_depth: i64) -> Vec3 {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }
 
-        if let Some(scattered) = world.hit(
-            ray,
+        let hit_record = match _world.hit(
+            _ray,
             Interval {
                 l: 0.001,
                 r: INFINITY,
             },
         ) {
-            return scattered.attenuation * self.color_ray(&scattered.ray, world, max_depth - 1);
+            Some(hit_record) => hit_record,
+            None => {
+                // Did not hit anything in the _world, return "sky light"
+                // Interpolation of y value for sky color
+                let ray_direction_unit = _ray.direction.unit_vector();
+                let a = 0.5_f64 * (ray_direction_unit.y() + 1_f64);
+                return (1_f64 - a) * Vec3::new(1_f64, 1_f64, 1_f64)
+                    + a * Vec3::new(0.5_f64, 0.7_f64, 1.0_f64);
+            }
         };
 
-        // Interpolation of y value for sky color
-        let ray_direction_unit = ray.direction.unit_vector();
-        let a = 0.5_f64 * (ray_direction_unit.y() + 1_f64);
-        (1_f64 - a) * Vec3::new(1_f64, 1_f64, 1_f64) + a * Vec3::new(0.5_f64, 0.7_f64, 1.0_f64)
+        match hit_record.material.scatter(_ray, &hit_record) {
+            Some(scattered) => {
+                scattered.attenuation * self.color_ray(&scattered.ray, _world, max_depth - 1)
+            }
+            None => Vec3::new_int(0, 0, 0), // If the material absorbs the light
+        }
         // Vec3::new_int(0, 0, 0)
     }
     fn get_ray(&self, y: i64, x: i64) -> Ray {
