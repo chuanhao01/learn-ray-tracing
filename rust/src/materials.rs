@@ -1,3 +1,5 @@
+use rand::{thread_rng, Rng};
+
 use crate::{ray::Ray, HitRecord};
 
 use super::Vec3;
@@ -39,7 +41,6 @@ pub struct Metal {
     /// Ratio to scale the sampled unit circle, for the reflected ray + fuzziness
     fuzzy_factor: f64,
 }
-
 impl Metal {
     pub fn new(albedo: Vec3, fuzzy_factor: f64) -> Metal {
         Metal {
@@ -52,7 +53,6 @@ impl Metal {
         }
     }
 }
-
 impl Scatterable for Metal {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
         let scattered_direction = Vec3::reflect(
@@ -74,9 +74,63 @@ impl Scatterable for Metal {
     }
 }
 
+pub struct Dielectric {
+    pub index_of_reflectance: f64,
+}
+impl Dielectric {
+    /// Calculate the reflectance given the refraction_ratio (in relation to air index of refraction being 1.0)
+    fn reflectance(cos_theta: f64, refraction_ratio: f64) -> f64 {
+        let r0 = (1_f64 - refraction_ratio) + (1_f64 + refraction_ratio);
+        let r0 = r0 * r0;
+        r0 + (1_f64 - r0) * (1_f64 - cos_theta).powi(5)
+    }
+}
+impl Scatterable for Dielectric {
+    fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
+        let mut rng = thread_rng();
+
+        // Diaelectric passes the color along
+        let albedo = Vec3::new_int(1, 1, 1);
+
+        let refraction_ratio = if hit_record.front_face {
+            1_f64 / self.index_of_reflectance
+        } else {
+            self.index_of_reflectance
+        };
+        let unit_direction = _ray.direction.unit_vector();
+        let cos_theta =
+            Vec3::dot(&(-unit_direction.clone()), &hit_record.against_normal_unit).min(1_f64);
+        let sin_theta = (1_f64 - cos_theta * cos_theta).sqrt();
+        if refraction_ratio * sin_theta > 1_f64
+            || Dielectric::reflectance(cos_theta, refraction_ratio) > rng.gen::<f64>()
+        {
+            Some(Scattered {
+                attenuation: albedo,
+                ray: Ray {
+                    origin: hit_record.p.clone(),
+                    direction: Vec3::reflect(&unit_direction, &hit_record.against_normal_unit),
+                },
+            })
+        } else {
+            Some(Scattered {
+                attenuation: albedo,
+                ray: Ray {
+                    origin: hit_record.p.clone(),
+                    direction: Vec3::refract(
+                        &unit_direction,
+                        &hit_record.against_normal_unit,
+                        refraction_ratio,
+                    ),
+                },
+            })
+        }
+    }
+}
+
 pub enum Materials {
     Lambertain(Lambertain),
     Metal(Metal),
+    Dielectric(Dielectric),
     None,
 }
 
@@ -85,6 +139,7 @@ impl Scatterable for Materials {
         match self {
             Materials::Lambertain(lambertain) => lambertain.scatter(_ray, hit_record),
             Materials::Metal(metal) => metal.scatter(_ray, hit_record),
+            Materials::Dielectric(dielectric) => dielectric.scatter(_ray, hit_record),
             Materials::None => None,
         }
     }

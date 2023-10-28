@@ -74,6 +74,18 @@ impl Vec3 {
     pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
         v.clone() - 2_f64 * Vec3::dot(v, n) * n.clone()
     }
+    ///Calculates the refracted vector passing through a material
+    /// Given the initial vector, normal and eta_over_eta_prime
+    pub fn refract(unit_vector: &Vec3, unit_normal: &Vec3, eta_over_eta_prime: f64) -> Vec3 {
+        let cos_theta = f64::min(Vec3::dot(&(-unit_vector.clone()), unit_normal), 1_f64);
+        let refracted_vector_perpendicular =
+            eta_over_eta_prime * (unit_vector.clone() + cos_theta * unit_normal.clone());
+        let refracted_vector_parallel = -(1_f64 - refracted_vector_perpendicular.length_squared())
+            .abs()
+            .sqrt()
+            * unit_normal.clone();
+        refracted_vector_perpendicular + refracted_vector_parallel
+    }
     /// Generates a random vector with x, y and z in (min, max)
     pub fn random(min: f64, max: f64) -> Vec3 {
         let mut rng = thread_rng();
