@@ -58,15 +58,21 @@ impl Vec3 {
     }
 
     // Public fns
+    /// Calculates the dot product of 2 vectors
     pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
         u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
     }
+    /// Calculates the cross product of 2 vectors
     pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
         Vec3::new(
             u.e[1] * v.e[2] - u.e[2] * v.e[1],
             u.e[2] * v.e[0] - u.e[0] * v.e[2],
             u.e[0] * v.e[1] - u.e[1] * v.e[0],
         )
+    }
+    ///Calculates the resulting vector, reflecting v about n
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        v.clone() - 2_f64 * Vec3::dot(v, n) * n.clone()
     }
     /// Generates a random vector with x, y and z in (min, max)
     pub fn random(min: f64, max: f64) -> Vec3 {

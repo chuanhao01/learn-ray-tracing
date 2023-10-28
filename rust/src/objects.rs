@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use crate::helper::Interval;
-use crate::materials::{Scatterable, Scattered};
 use crate::ray::Ray;
 use crate::HitRecord;
 use crate::Hittable;
