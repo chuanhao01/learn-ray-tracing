@@ -40,7 +40,8 @@ impl Hittable for Sphere {
         if !valid_t_interval.surrounds(root) {
             return None;
         }
-        let outward_normal_unit = (_ray.at(root) - self.center.clone()).unit_vector();
+        // let outward_normal_unit = (_ray.at(root) - self.center.clone()).unit_vector();
+        let outward_normal_unit = (_ray.at(root) - self.center.clone()) / self.radius;
         Some(HitRecord::new(
             _ray,
             &outward_normal_unit,

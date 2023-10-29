@@ -77,12 +77,13 @@ impl Vec3 {
     ///Calculates the refracted vector passing through a material
     /// Given the initial vector, normal and eta_over_eta_prime
     pub fn refract(unit_vector: &Vec3, unit_normal: &Vec3, eta_over_eta_prime: f64) -> Vec3 {
-        let cos_theta = f64::min(Vec3::dot(&(-unit_vector.clone()), unit_normal), 1_f64);
+        let cos_theta = Vec3::dot(&(-unit_vector.clone()), unit_normal).min(1_f64);
         let refracted_vector_perpendicular =
             eta_over_eta_prime * (unit_vector.clone() + cos_theta * unit_normal.clone());
-        let refracted_vector_parallel = -(1_f64 - refracted_vector_perpendicular.length_squared())
-            .abs()
-            .sqrt()
+        let refracted_vector_parallel = -((1_f64
+            - refracted_vector_perpendicular.length_squared())
+        .abs()
+        .sqrt())
             * unit_normal.clone();
         refracted_vector_perpendicular + refracted_vector_parallel
     }

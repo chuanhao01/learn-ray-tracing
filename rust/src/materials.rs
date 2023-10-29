@@ -80,7 +80,7 @@ pub struct Dielectric {
 impl Dielectric {
     /// Calculate the reflectance given the refraction_ratio (in relation to air index of refraction being 1.0)
     fn reflectance(cos_theta: f64, refraction_ratio: f64) -> f64 {
-        let r0 = (1_f64 - refraction_ratio) + (1_f64 + refraction_ratio);
+        let r0 = (1_f64 - refraction_ratio) / (1_f64 + refraction_ratio);
         let r0 = r0 * r0;
         r0 + (1_f64 - r0) * (1_f64 - cos_theta).powi(5)
     }

@@ -8,12 +8,12 @@ use rust_simple_raytracer::{
 fn main() {
     let camera_params = CameraParams {
         // samples_per_pixel: 1,
-        samples_per_pixel: 100,
+        samples_per_pixel: 150,
         max_depth: 50,
-        image_width: 400,
-        fov: 100_f64,
+        image_width: 600,
+        // fov: 100_f64,
         // focus_angle: 3_f64,
-        // focus_distance: 0.5,
+        focus_distance: 0.4,
         ..Default::default()
     };
     let camera = Camera::new(camera_params);
@@ -32,7 +32,7 @@ fn main() {
         0.1_f64,
     )));
     let material_glass = Rc::new(Materials::Dielectric(Dielectric {
-        index_of_reflectance: 1.5,
+        index_of_reflectance: 1.4,
     }));
 
     let world = vec![
@@ -48,13 +48,18 @@ fn main() {
         }),
         Hittables::Sphere(Sphere {
             center: Vec3::new(1.0, 0.0, -1.0),
-            radius: 0.5,
+            radius: -0.4,
             material: Rc::clone(&material_glass),
         }),
         Hittables::Sphere(Sphere {
             center: Vec3::new(1.0, 0.0, -1.0),
-            radius: -0.4,
+            radius: 0.5,
             material: Rc::clone(&material_glass),
+        }),
+        Hittables::Sphere(Sphere {
+            center: Vec3::new(0.4, -0.3, -0.8),
+            radius: 0.1,
+            material: Rc::clone(&material_center_blue),
         }),
         Hittables::Sphere(Sphere {
             center: Vec3::new(0_f64, -100.5_f64, -1_f64),
