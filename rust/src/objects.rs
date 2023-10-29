@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::helper::Interval;
 use crate::ray::Ray;
@@ -12,7 +12,7 @@ use super::Vec3;
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
-    pub material: Rc<Materials>,
+    pub material: Arc<Materials>,
 }
 
 impl Hittable for Sphere {
@@ -46,7 +46,7 @@ impl Hittable for Sphere {
             _ray,
             &outward_normal_unit,
             root,
-            Rc::clone(&self.material),
+            Arc::clone(&self.material),
         ))
     }
 }

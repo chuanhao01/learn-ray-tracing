@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::f64::INFINITY;
 
 use indicatif::ProgressBar;
@@ -153,11 +154,27 @@ impl Camera {
             // eprintln!("\r Scanlines remaining: {}", self.image_height - y - 1);
             progress_bar.inc(1);
             for x in 0..self.image_width {
-                let mut pixel_color = Vec3::new_int(0, 0, 0);
+                let mut rays: Vec<Ray> = Vec::new();
                 for _ in 0..self.samples_per_pixel {
-                    let ray = self.get_ray(y, x);
-                    pixel_color += self.color_ray(&ray, world, self.max_depth);
+                    rays.push(self.get_ray(y, x));
                 }
+                let pixel_color = rays
+                    .par_iter()
+                    .fold(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, ray| {
+                            acc += self.color_ray(ray, world, self.max_depth);
+                            acc
+                        },
+                    )
+                    .reduce(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, color| {
+                            acc += color;
+                            acc
+                        },
+                    );
+                // pixel_color += self.color_ray(&ray, world, self.max_depth);
                 let (pixel_r, pixel_g, pixel_b) =
                     color_to_rgb(&pixel_color, self.samples_per_pixel);
                 println!("{}, {}, {}", pixel_r, pixel_g, pixel_b);
