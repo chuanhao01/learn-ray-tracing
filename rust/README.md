@@ -26,6 +26,8 @@ What I used to make this (Besides `rust`):
 
 - `llvm-cov`
   - For looking at code coverage of tests
+- Tarpulin
+  - For windows
 
 ## Acknowledgements, References and Related Projects
 
