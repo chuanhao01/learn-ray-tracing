@@ -288,6 +288,14 @@ mod test {
         let u_l = 3_f64 / (9_f64 * 3_f64).sqrt();
         assert_eq!(u_v, Vec3::new(u_l, u_l, u_l));
     }
+    #[test]
+    fn test_vec3_near_zero() {
+        let v = Vec3::new(-1e9_f64, -1e9_f64, -1e9_f64);
+        assert!(v.near_zero());
+
+        let v = Vec3::new(0.01, 0.01, 0.01);
+        assert!(!v.near_zero());
+    }
 
     #[test]
     fn test_vec3_clone() {
@@ -395,5 +403,21 @@ mod test {
         let v = Vec3::new_int(-2, 2, 2);
         let r = Vec3::cross(&u, &v);
         assert_eq!(r, Vec3::new_int(0, -4, 4));
+    }
+    #[test]
+    fn test_reflect() {
+        let v = Vec3::new(1.0, -1.0, 0.0);
+        let n = Vec3::new(0.0, 1.0, 0.0);
+        assert_eq!(Vec3::reflect(&v, &n), Vec3::new(1.0, 1.0, 0.0));
+    }
+    #[test]
+    fn test_refract() {
+        let uv = Vec3::new(1.0, -1.0, 0.0);
+        let un = Vec3::new(0.0, 1.0, 0.0);
+        let eta_over_eta_prime = 2.0;
+        assert_eq!(
+            Vec3::refract(&uv, &un, eta_over_eta_prime),
+            Vec3::new(1.0, 1.0, 1.0)
+        );
     }
 }

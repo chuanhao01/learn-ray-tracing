@@ -59,21 +59,5 @@ impl Hittable for Vec<Hittables> {
                 }
             });
         result
-
-        // let mut max_interval_r = valid_t_interval.r;
-        // let mut acc = None;
-        // for hittable in self {
-        //     if let Some(scattered) =  hittable.hit(
-        //         _ray,
-        //         Interval {
-        //             l: valid_t_interval.l,
-        //             r: max_interval_r,
-        //         },
-        //     ) {
-        //         max_interval_r = scattered.t;
-        //         acc = Some(scattered)
-        //     }
-        // }
-        // acc
     }
 }
