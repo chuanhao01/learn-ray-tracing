@@ -44,14 +44,14 @@ impl Vec3 {
     pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
+    /// Returns length of the vector calculated with the pythagorean method
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
-
     pub fn unit_vector(&self) -> Self {
         self.clone() / self.length()
     }
-
+    /// Checks if the vector is near zero. Used to prevent float rounding erros
     pub fn near_zero(&self) -> bool {
         let s = -1e8_f64;
         self.e[0] < s && self.e[1] < s && self.e[2] < s
@@ -107,6 +107,7 @@ impl Vec3 {
     }
 }
 
+// Vec3 Traits
 impl Clone for Vec3 {
     fn clone(&self) -> Self {
         Vec3 { e: self.e }
@@ -123,13 +124,21 @@ impl Debug for Vec3 {
         <Vec3 as Display>::fmt(self, f)
     }
 }
-
+/// Implemented for ease of testing
+impl PartialEq for Vec3 {
+    fn eq(&self, other: &Self) -> bool {
+        self.e[0] == other.e[0] && self.e[1] == other.e[1] && self.e[2] == other.e[2]
+    }
+}
+impl Eq for Vec3 {}
+/// Used for easy access to the Vec3 values
 impl Index<usize> for Vec3 {
     type Output = f64;
     fn index(&self, index: usize) -> &Self::Output {
         &self.e[index]
     }
 }
+/// Refer to Vec3's [`Index`]
 impl IndexMut<usize> for Vec3 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.e[index]
@@ -230,14 +239,6 @@ impl Div<f64> for Vec3 {
         v
     }
 }
-
-/// Implemented for ease of testing
-impl PartialEq for Vec3 {
-    fn eq(&self, other: &Self) -> bool {
-        self.e[0] == other.e[0] && self.e[1] == other.e[1] && self.e[2] == other.e[2]
-    }
-}
-impl Eq for Vec3 {}
 
 #[cfg(test)]
 mod test {
@@ -414,10 +415,10 @@ mod test {
     fn test_refract() {
         let uv = Vec3::new(1.0, -1.0, 0.0);
         let un = Vec3::new(0.0, 1.0, 0.0);
-        let eta_over_eta_prime = 2.0;
-        assert_eq!(
-            Vec3::refract(&uv, &un, eta_over_eta_prime),
-            Vec3::new(1.0, 1.0, 1.0)
-        );
+        let eta_over_eta_prime = 1.2;
+        let r = Vec3::refract(&uv, &un, eta_over_eta_prime);
+        assert_eq!(format!("{:.2}", r.x()), "1.20");
+        assert_eq!(format!("{:.2}", r.y()), "-0.66");
+        assert_eq!(format!("{:.2}", r.z()), "0.00");
     }
 }
