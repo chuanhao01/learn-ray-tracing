@@ -60,7 +60,6 @@ fn test_scene() {
             radius: 0.5,
             material: Arc::clone(&material_blue),
         }),
-
         Hittables::Sphere(Sphere {
             center: Vec3::new(-0.8, 0.0, -1.0),
             radius: 0.2,
@@ -71,13 +70,11 @@ fn test_scene() {
             radius: 0.2,
             material: Arc::clone(&material_metal_fuzzy),
         }),
-
         Hittables::Sphere(Sphere {
             center: Vec3::new(0.3, 0.0, -1.0),
             radius: 0.2,
             material: Arc::clone(&material_glass),
         }),
-
         Hittables::Sphere(Sphere {
             center: Vec3::new(0.8, 0.0, -1.0),
             radius: -0.15,

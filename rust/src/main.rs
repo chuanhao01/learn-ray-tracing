@@ -8,7 +8,7 @@ use rust_simple_raytracer::{
 fn test_scene() {
     let camera_params = CameraParams {
         // samples_per_pixel: 1,
-        samples_per_pixel: 500,
+        samples_per_pixel: 100,
         max_depth: 50,
         image_width: 600,
         // fov: 100_f64,
@@ -57,11 +57,6 @@ fn test_scene() {
             material: Arc::clone(&material_glass),
         }),
         Hittables::Sphere(Sphere {
-            center: Vec3::new(0.4, -0.3, -0.8),
-            radius: 0.1,
-            material: Arc::clone(&material_center_blue),
-        }),
-        Hittables::Sphere(Sphere {
             center: Vec3::new(0_f64, -100.5_f64, -1_f64),
             radius: 100_f64,
             material: material_ground,
@@ -73,5 +68,5 @@ fn test_scene() {
 }
 
 fn main() {
-    test_scene();
+    println!("{}", 1_f64 / 0_f64);
 }

@@ -63,7 +63,9 @@ fn main() {
     world.push(Hittables::Sphere(Sphere {
         center: Vec3::new_int(-4, 1, 0),
         radius: 1.0,
-        material: Arc::new(Materials::Lambertain(Lambertain { albedo: Vec3::new(0.4, 0.2, 0.1) })),
+        material: Arc::new(Materials::Lambertain(Lambertain {
+            albedo: Vec3::new(0.4, 0.2, 0.1),
+        })),
     }));
     world.push(Hittables::Sphere(Sphere {
         center: Vec3::new_int(4, 1, 0),
@@ -72,9 +74,9 @@ fn main() {
     }));
 
     let camera_params = CameraParams {
-        samples_per_pixel: 50,
-        max_depth: 20,
-        image_width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+        image_width: 1200,
         fov: 20_f64,
         look_from: Vec3::new_int(13, 2, 3),
         look_at: Vec3::new_int(0, 0, 0),

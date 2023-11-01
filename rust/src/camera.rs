@@ -241,7 +241,8 @@ impl Camera {
     /// Samples a origin point from the defocus disk
     fn defocus_disk_sample(&self) -> Vec3 {
         let mut rng = thread_rng();
-        self.center.clone() + self.defocus_disk_u.clone() * rng.gen_range(-1_f64..1_f64)
+        self.center.clone()
+            + self.defocus_disk_u.clone() * rng.gen_range(-1_f64..1_f64)
             + self.defocus_disk_v.clone() * rng.gen_range(-1_f64..1_f64)
     }
 }
