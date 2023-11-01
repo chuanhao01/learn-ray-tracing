@@ -24,4 +24,7 @@ You can find a quick summary of the raytracers in their language below:
 - [`cpp`](./cpp)
   - Follows really closely with [RayTracingInOneWeekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
   - Only really added the `Cmake` build system as well as splitting up the header files more
+- [`rust`](./rust)
+  - Really enjoyed the developer tooling and working with `rust` more
+  - Also noticed it ran faster than the `cpp` implementation sometimes
 - More to come soon...
