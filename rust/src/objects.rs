@@ -14,6 +14,23 @@ pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
     pub material: Arc<Materials>,
+    pub bbox: AABB,
+}
+
+impl Sphere {
+    pub fn new(center: Vec3, radius: f64, material: Arc<Materials>) -> Self {
+        let radius_v = Vec3::new(radius, radius, radius);
+        let bbox = AABB::from_points(
+            &(center.clone() - radius_v.clone()),
+            &(center.clone() + radius_v.clone()),
+        );
+        Self {
+            center,
+            radius,
+            material,
+            bbox,
+        }
+    }
 }
 
 impl Hittable<HitRecord> for Sphere {
@@ -92,10 +109,31 @@ impl AABB {
 impl Hittable<Interval> for AABB {
     /// Quick and cheaper check for if the ray will hit the AABB
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Interval> {
+        let mut modified_t_interval = valid_t_interval;
         for axis in 0..3 {
-            let inv_b = 1 / _ray.direction()[axis];
-            let t_min =
+            let inv_b = 1_f64 / _ray.direction[axis];
+            let a = _ray.origin[axis];
+            let interval = self.axis(axis as i64);
+
+            let t0 = (interval.min - a) * inv_b;
+            let t1 = (interval.max - a) * inv_b;
+
+            // Swap if required
+            let (t0, t1) = if inv_b < 0_f64 { (t1, t0) } else { (t0, t1) };
+            if t0 > modified_t_interval.min {
+                modified_t_interval.min = t0;
+            }
+            if t1 < modified_t_interval.max {
+                modified_t_interval.max = t1;
+            }
+
+            // Check if ray still hits within the AABB
+            // Because if the t values do not overlap, there does not exists a common t for which the ray stays in the AABB (so hits it)
+            if modified_t_interval.max < modified_t_interval.min {
+                return None;
+            }
         }
+        Some(modified_t_interval)
     }
 }
 
@@ -118,14 +156,23 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_sphere_new(){
+        let mat = Arc::new(Materials::None);
+        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
+        assert_eq!(s.bbox.x.min, -1.0);
+        assert_eq!(s.bbox.y.min, -1.0);
+        assert_eq!(s.bbox.z.min, -1.0);
+
+        assert_eq!(s.bbox.x.max, 1.0);
+        assert_eq!(s.bbox.y.max, 1.0);
+        assert_eq!(s.bbox.z.max, 1.0);
+    }
+
+    #[test]
     fn test_sphere_hit() {
         // Ensure the ray hits the sphere
         let mat = Arc::new(Materials::None);
-        let s = Sphere {
-            center: Vec3::new_int(0, 0, 0),
-            radius: 1.0,
-            material: Arc::clone(&mat),
-        };
+        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
         let r = Ray {
             direction: Vec3::new_int(0, 0, 1),
             origin: Vec3::new_int(0, 0, -2),
