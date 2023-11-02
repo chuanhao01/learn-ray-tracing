@@ -70,6 +70,7 @@ impl Hittable<HitRecord> for Sphere {
 }
 
 /// Axis Aligned Bounding Box
+#[derive(Default)]
 pub struct AABB {
     x: Interval,
     y: Interval,
@@ -94,8 +95,17 @@ impl AABB {
             },
         }
     }
-    /// Get a reference to the intervals in the AABB
-    /// TODO: Find a better way to deal with people using non-sensical indexes other than 0-2
+    /// Create a AABB from 2 AABB, containing both of the input AABB
+    pub fn from_aabb(a: &Self, b: &Self) -> Self {
+        AABB {
+            x: Interval::from_interval(&a.x, &b.x),
+            y: Interval::from_interval(&a.y, &b.y),
+            z: Interval::from_interval(&a.z, &b.z),
+        }
+    }
+    // Get a reference to the intervals in the AABB based on index
+    // TODO: Find a better way to deal with people using non-sensical indexes other than 0-2
+    // Idea was to use an enum, but having to deal with errors is meh
     pub fn axis(&self, axis: i64) -> &Interval {
         match axis {
             0 => &self.x,
@@ -141,6 +151,15 @@ pub enum Hittables {
     Sphere(Sphere),
 }
 
+impl Hittables{
+    /// Quick accessor to get the hittable bbox
+    pub fn bbox(&self) -> &AABB{
+        match self{
+            Hittables::Sphere(sphere) => &sphere.bbox
+        }
+    }
+}
+
 impl Hittable<HitRecord> for Hittables {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         match self {
@@ -156,7 +175,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_sphere_new(){
+    fn test_sphere_new() {
         let mat = Arc::new(Materials::None);
         let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
         assert_eq!(s.bbox.x.min, -1.0);
@@ -222,4 +241,17 @@ mod test {
             )
             .is_none());
     }
+
+    #[test]
+    fn test_aabb_default(){
+        let bbox = AABB::default();
+        assert_eq!(bbox.x.min, 0_f64);
+        assert_eq!(bbox.y.min, 0_f64);
+        assert_eq!(bbox.z.min, 0_f64);
+
+        assert_eq!(bbox.x.max, 0_f64);
+        assert_eq!(bbox.y.max, 0_f64);
+        assert_eq!(bbox.z.max, 0_f64);
+    }
+
 }

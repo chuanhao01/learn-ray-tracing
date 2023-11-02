@@ -29,6 +29,7 @@ pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
 ///
 /// There is a way to do it in rust with std::ops::Range,
 /// but I don't know and truct myself to use it properly
+#[derive(Default)]
 pub struct Interval {
     /// Left bound
     pub min: f64,
@@ -37,6 +38,14 @@ pub struct Interval {
 }
 
 impl Interval {
+    /// Creates an interval that encapsulates both input intervals (i.e. a larger than both intervals)
+    pub fn from_interval(a: &Self, b: &Self) -> Self {
+        Self {
+            min: f64::min(a.min, b.min),
+            max: f64::max(a.max, b.max),
+        }
+    }
+
     /// returns the size of the interval
     pub fn size(&self) -> f64 {
         self.max - self.min
@@ -81,6 +90,13 @@ mod test {
 
         let rgb = color_to_rgb(&Vec3::new(0.5, 0.5, 0.5), 1);
         assert_eq!(rgb, (181, 181, 181));
+    }
+
+    #[test]
+    fn test_interval_default() {
+        let i = Interval::default();
+        assert_eq!(i.min, 0_f64);
+        assert_eq!(i.max, 0_f64);
     }
 
     #[test]

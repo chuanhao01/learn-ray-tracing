@@ -1,6 +1,8 @@
-use std::sync::Arc;
+use std::{rc::Rc, sync::Arc, cmp::Ordering};
 
-use crate::{ray::Ray, Hittables, Interval, Materials, Vec3};
+use rand::{thread_rng, Rng};
+
+use crate::{objects::AABB, ray::Ray, Hittables, Interval, Materials, Vec3};
 
 pub struct HitRecord {
     /// Point at which the hit occurs
@@ -38,6 +40,64 @@ impl HitRecord {
 
 pub trait Hittable<T> {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<T>;
+}
+
+/// A Hittable List to hold all the Hittables in the world
+/// Do create the object with a default and use the [HittableList::add] method to add Hittables to the list
+#[derive(Default)]
+pub struct HittableList {
+    v: Vec<Arc<Hittables>>,
+    bbox: AABB,
+}
+impl HittableList {
+    /// Adds a new Hittable into the list
+    pub fn add(mut self, hittable: Hittables) {
+        self.bbox = AABB::from_aabb(&self.bbox, hittable.bbox());
+        self.v.push(Arc::new(hittable));
+    }
+    /// Method to get the length of Hittables
+    pub fn len(self) -> usize {
+        self.v.len()
+    }
+}
+
+/// Bounding volume hierarchy
+pub struct BVH {
+    left: Rc<BVH>,
+    right: Rc<BVH>,
+    bbox: AABB,
+}
+impl BVH {
+    pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
+        Self::new(hittable_list, 0, hittable_list.len())
+    }
+    fn new(hittable_list: &HittableList, start: usize, end: usize) -> Self {
+        let mut rng = thread_rng();
+        let axis = rng.gen_range(0_i64..3_i64);
+
+        let hittable_comparer = |a: &Arc<Hittables>, b: &Arc<Hittables>| -> Ordering {
+            if a.bbox().axis(axis).min < b.bbox().axis(axis).min{
+                Ordering::Less
+            } else if  a.bbox().axis(axis).min > b.bbox().axis(axis).min {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        };
+        let list_size = end -start;
+        let (left, right) = if list_size == 1{
+            (hittable_list.v[start], hittable_list.v[start])
+        } else if list_size == 2 {
+            (hittable_list.v[start], hittable_list.v[end])
+        } else if list_size == 3 {
+            (BVH::new(hittable_list, start, start+1), hittable_list.v[end])
+        } else {
+            let hittable_list = hittable_list.v.clone().sort_by(hittable_comparer);
+            let mid = start + list_size / 2;
+            (BVH::new(hittable_list, start, mid), BVH::new(hittable_list, mid, end))
+        }
+    }
+
 }
 
 impl Hittable<HitRecord> for Vec<Hittables> {
