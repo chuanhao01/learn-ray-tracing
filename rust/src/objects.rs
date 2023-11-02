@@ -87,8 +87,8 @@ mod test {
             .hit(
                 &r,
                 Interval {
-                    l: 0.001,
-                    r: INFINITY,
+                    min: 0.001,
+                    max: INFINITY,
                 },
             )
             .unwrap();
@@ -103,15 +103,15 @@ mod test {
             .hit(
                 &r,
                 Interval {
-                    l: 1.0,
-                    r: INFINITY,
+                    min: 1.0,
+                    max: INFINITY,
                 },
             )
             .unwrap();
         assert_eq!(hr.t, 3.0);
 
         // Ensure interval out of range
-        assert!(s.hit(&r, Interval { l: 4.0, r: 5.0 },).is_none());
+        assert!(s.hit(&r, Interval { min: 4.0, max: 5.0 },).is_none());
 
         // Ensure that the ray does not hit the sphere
         let r = Ray {
@@ -122,8 +122,8 @@ mod test {
             .hit(
                 &r,
                 Interval {
-                    l: 0.001,
-                    r: INFINITY,
+                    min: 0.001,
+                    max: INFINITY,
                 },
             )
             .is_none());

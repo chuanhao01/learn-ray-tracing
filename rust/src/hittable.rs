@@ -45,12 +45,12 @@ impl Hittable for Vec<Hittables> {
         // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest Scattered
         let (_, result) = self
             .iter()
-            .fold((valid_t_interval.r, None), |acc, hittable| {
+            .fold((valid_t_interval.max, None), |acc, hittable| {
                 if let Some(hit_record) = hittable.hit(
                     _ray,
                     Interval {
-                        l: valid_t_interval.l,
-                        r: acc.0,
+                        min: valid_t_interval.min,
+                        max: acc.0,
                     },
                 ) {
                     (hit_record.t, Some(hit_record))

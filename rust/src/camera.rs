@@ -45,10 +45,10 @@ pub struct CameraParams {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Camera {
     image_width: i64,
     image_height: i64,
-    aspect_ratio: f64,
 
     samples_per_pixel: i64,
     max_depth: i64,
@@ -127,7 +127,6 @@ impl Camera {
         Camera {
             image_width: camera_params.image_width,
             image_height,
-            aspect_ratio: camera_params.aspect_ratio,
             samples_per_pixel: camera_params.samples_per_pixel,
             max_depth: camera_params.max_depth,
             focus_angle: camera_params.focus_angle,
@@ -192,8 +191,8 @@ impl Camera {
         let hit_record = match _world.hit(
             _ray,
             Interval {
-                l: 0.001,
-                r: INFINITY,
+                min: 0.001,
+                max: INFINITY,
             },
         ) {
             Some(hit_record) => hit_record,

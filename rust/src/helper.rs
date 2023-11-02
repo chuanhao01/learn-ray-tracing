@@ -31,19 +31,19 @@ pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
 /// but I don't know and truct myself to use it properly
 pub struct Interval {
     /// Left bound
-    pub l: f64,
+    pub min: f64,
     /// Right bound
-    pub r: f64,
+    pub max: f64,
 }
 
 impl Interval {
     /// Checks if provided x is `l <= x <= r`
     pub fn contains(&self, x: f64) -> bool {
-        self.l <= x && x <= self.r
+        self.min <= x && x <= self.max
     }
     /// Checks if provided x is `l < x < r`
     pub fn surrounds(&self, x: f64) -> bool {
-        self.l < x && x < self.r
+        self.min < x && x < self.max
     }
 }
 
