@@ -36,11 +36,11 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord>;
+pub trait Hittable<T> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<T>;
 }
 
-impl Hittable for Vec<Hittables> {
+impl Hittable<HitRecord> for Vec<Hittables> {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest Scattered
         let (_, result) = self

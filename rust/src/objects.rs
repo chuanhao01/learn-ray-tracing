@@ -16,7 +16,7 @@ pub struct Sphere {
     pub material: Arc<Materials>,
 }
 
-impl Hittable for Sphere {
+impl Hittable<HitRecord> for Sphere {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let a_minus_c = _ray.origin.clone() - self.center.clone();
 
@@ -52,11 +52,58 @@ impl Hittable for Sphere {
     }
 }
 
+/// Axis Aligned Bounding Box
+pub struct AABB {
+    x: Interval,
+    y: Interval,
+    z: Interval,
+}
+
+impl AABB {
+    /// Create the AABB given 2 points, with each axis covering from p1 to p2
+    pub fn from_points(p1: &Vec3, p2: &Vec3) -> AABB {
+        AABB {
+            x: Interval {
+                min: f64::min(p1.x(), p2.x()),
+                max: f64::max(p1.x(), p2.x()),
+            },
+            y: Interval {
+                min: f64::min(p1.y(), p2.y()),
+                max: f64::max(p1.y(), p2.y()),
+            },
+            z: Interval {
+                min: f64::min(p1.z(), p2.z()),
+                max: f64::max(p1.z(), p2.z()),
+            },
+        }
+    }
+    /// Get a reference to the intervals in the AABB
+    /// TODO: Find a better way to deal with people using non-sensical indexes other than 0-2
+    pub fn axis(&self, axis: i64) -> &Interval {
+        match axis {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => &self.x,
+        }
+    }
+}
+
+impl Hittable<Interval> for AABB {
+    /// Quick and cheaper check for if the ray will hit the AABB
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Interval> {
+        for axis in 0..3 {
+            let inv_b = 1 / _ray.direction()[axis];
+            let t_min =
+        }
+    }
+}
+
 pub enum Hittables {
     Sphere(Sphere),
 }
 
-impl Hittable for Hittables {
+impl Hittable<HitRecord> for Hittables {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         match self {
             Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval),
