@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc, cmp::Ordering};
+use std::{cmp::Ordering, sync::Arc};
 
 use rand::{thread_rng, Rng};
 
@@ -63,9 +63,10 @@ impl HittableList {
 
 /// Bounding volume hierarchy
 pub struct BVH {
-    left: Rc<BVH>,
-    right: Rc<BVH>,
+    left: Option<Arc<BVH>>,
+    right: Option<Arc<BVH>>,
     bbox: AABB,
+    hittable: Arc<Hittables>,
 }
 impl BVH {
     pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
@@ -76,28 +77,43 @@ impl BVH {
         let axis = rng.gen_range(0_i64..3_i64);
 
         let hittable_comparer = |a: &Arc<Hittables>, b: &Arc<Hittables>| -> Ordering {
-            if a.bbox().axis(axis).min < b.bbox().axis(axis).min{
+            if a.bbox().axis(axis).min < b.bbox().axis(axis).min {
                 Ordering::Less
-            } else if  a.bbox().axis(axis).min > b.bbox().axis(axis).min {
+            } else if a.bbox().axis(axis).min > b.bbox().axis(axis).min {
                 Ordering::Greater
             } else {
                 Ordering::Equal
             }
         };
-        let list_size = end -start;
-        let (left, right) = if list_size == 1{
-            (hittable_list.v[start], hittable_list.v[start])
-        } else if list_size == 2 {
-            (hittable_list.v[start], hittable_list.v[end])
-        } else if list_size == 3 {
-            (BVH::new(hittable_list, start, start+1), hittable_list.v[end])
+        let list_size = end - start;
+        if list_size == 0 {
+            BVH {
+                left: None,
+                right: None,
+                hittable: Arc::new(Hittables::None),
+                bbox: Hittables::None.bbox().clone(),
+            }
+        } else if list_size == 1 {
+            BVH {
+                left: None,
+                right: None,
+                hittable: hittable_list.v[start],
+                bbox: hittable_list.v[start].bbox().clone(),
+            }
         } else {
-            let hittable_list = hittable_list.v.clone().sort_by(hittable_comparer);
-            let mid = start + list_size / 2;
-            (BVH::new(hittable_list, start, mid), BVH::new(hittable_list, mid, end))
         }
+        // let (left, right) = if list_size == 1{
+        //     // (hittable_list.v[start], hittable_list.v[start])
+        // } else if list_size == 2 {
+        //     (hittable_list.v[start], hittable_list.v[end])
+        // } else if list_size == 3 {
+        //     (BVH::new(hittable_list, start, start+1), hittable_list.v[end])
+        // } else {
+        //     let hittable_list = hittable_list.v.clone().sort_by(hittable_comparer);
+        //     let mid = start + list_size / 2;
+        //     (BVH::new(hittable_list, start, mid), BVH::new(hittable_list, mid, end))
+        // }
     }
-
 }
 
 impl Hittable<HitRecord> for Vec<Hittables> {

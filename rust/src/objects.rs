@@ -149,13 +149,28 @@ impl Hittable<Interval> for AABB {
 
 pub enum Hittables {
     Sphere(Sphere),
+    None,
 }
 
-impl Hittables{
+impl Hittables {
     /// Quick accessor to get the hittable bbox
-    pub fn bbox(&self) -> &AABB{
-        match self{
-            Hittables::Sphere(sphere) => &sphere.bbox
+    pub fn bbox(&self) -> &AABB {
+        match self {
+            Hittables::Sphere(sphere) => &sphere.bbox,
+            Hittables::None => &AABB {
+                x: Interval {
+                    min: 0_f64,
+                    max: 0_f64,
+                },
+                y: Interval {
+                    min: 0_f64,
+                    max: 0_f64,
+                },
+                z: Interval {
+                    min: 0_f64,
+                    max: 0_f64,
+                },
+            },
         }
     }
 }
@@ -164,6 +179,7 @@ impl Hittable<HitRecord> for Hittables {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         match self {
             Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval),
+            Hittables::None => None,
         }
     }
 }
@@ -243,7 +259,7 @@ mod test {
     }
 
     #[test]
-    fn test_aabb_default(){
+    fn test_aabb_default() {
         let bbox = AABB::default();
         assert_eq!(bbox.x.min, 0_f64);
         assert_eq!(bbox.y.min, 0_f64);
@@ -253,5 +269,4 @@ mod test {
         assert_eq!(bbox.y.max, 0_f64);
         assert_eq!(bbox.z.max, 0_f64);
     }
-
 }
