@@ -66,7 +66,7 @@ pub struct BVH {
     left: Option<Arc<BVH>>,
     right: Option<Arc<BVH>>,
     bbox: AABB,
-    hittable: Arc<Hittables>,
+    hittable: Option<Arc<Hittables>>,
 }
 impl BVH {
     pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
@@ -90,17 +90,40 @@ impl BVH {
             BVH {
                 left: None,
                 right: None,
-                hittable: Arc::new(Hittables::None),
+                hittable: Some(Arc::new(Hittables::None)),
                 bbox: Hittables::None.bbox().clone(),
             }
         } else if list_size == 1 {
             BVH {
                 left: None,
                 right: None,
-                hittable: hittable_list.v[start],
+                hittable: Some(hittable_list.v[start]),
                 bbox: hittable_list.v[start].bbox().clone(),
             }
+        } else if list_size == 2 {
+            BVH {
+                left: Some(Arc::new(BVH {
+                    left: None,
+                    right: None,
+                    hittable: Some(hittable_list.v[start]),
+                    bbox: hittable_list.v[start].bbox().clone(),
+                })),
+                right: Some(Arc::new(BVH {
+                    left: None,
+                    right: None,
+                    hittable: Some(hittable_list.v[end - 1]),
+                    bbox: hittable_list.v[end - 1].bbox().clone(),
+                })),
+                hittable: None,
+                bbox: AABB::from_aabb(hittable_list.v[start].bbox(), hittable_list.v[end - 1].bbox())
+            }
         } else {
+            BVH {
+                left: None,
+                right: None,
+                hittable: Some(hittable_list.v[start]),
+                bbox: hittable_list.v[start].bbox().clone(),
+            }
         }
         // let (left, right) = if list_size == 1{
         //     // (hittable_list.v[start], hittable_list.v[start])
