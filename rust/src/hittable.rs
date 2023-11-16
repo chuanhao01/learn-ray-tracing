@@ -52,6 +52,7 @@ pub struct HittableList {
 impl HittableList {
     /// Adds a new Hittable into the list
     pub fn add(mut self, hittable: Hittables) {
+        // Dont think this is needed anywhere?
         self.bbox = AABB::from_aabb(&self.bbox, hittable.bbox());
         self.v.push(Arc::new(hittable));
     }
@@ -63,16 +64,16 @@ impl HittableList {
 
 /// Bounding volume hierarchy
 pub struct BVH {
-    left: Option<Arc<BVH>>,
-    right: Option<Arc<BVH>>,
+    left: Option<BVH>,
+    right: Option<BVH>,
     bbox: AABB,
     hittable: Option<Arc<Hittables>>,
 }
 impl BVH {
     pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
-        Self::new(hittable_list, 0, hittable_list.len())
+        Self::new(&hittable_list.v, 0, hittable_list.len())
     }
-    fn new(hittable_list: &HittableList, start: usize, end: usize) -> Self {
+    fn new(hittables: &Vec<Arc<Hittables>>, start: usize, end: usize) -> Self {
         let mut rng = thread_rng();
         let axis = rng.gen_range(0_i64..3_i64);
 
@@ -97,32 +98,37 @@ impl BVH {
             BVH {
                 left: None,
                 right: None,
-                hittable: Some(hittable_list.v[start]),
-                bbox: hittable_list.v[start].bbox().clone(),
+                hittable: Some(hittables[start].clone()),
+                bbox: hittables[start].bbox().clone(),
             }
         } else if list_size == 2 {
             BVH {
-                left: Some(Arc::new(BVH {
+                left: Some(BVH {
                     left: None,
                     right: None,
-                    hittable: Some(hittable_list.v[start]),
-                    bbox: hittable_list.v[start].bbox().clone(),
-                })),
-                right: Some(Arc::new(BVH {
+                    hittable: Some(hittables[start].clone()),
+                    bbox: hittables[start].bbox().clone(),
+                }),
+                right: Some(BVH {
                     left: None,
                     right: None,
-                    hittable: Some(hittable_list.v[end - 1]),
-                    bbox: hittable_list.v[end - 1].bbox().clone(),
-                })),
+                    hittable: Some(hittables[end - 1].clone()),
+                    bbox: hittables[end - 1].bbox().clone(),
+                }),
                 hittable: None,
-                bbox: AABB::from_aabb(hittable_list.v[start].bbox(), hittable_list.v[end - 1].bbox())
+                bbox: AABB::from_aabb(hittables[start].bbox(), hittables[end - 1].bbox()),
             }
         } else {
+            let mut hittables = hittables.clone();
+            hittables.sort_by(hittable_comparer);
+            let mid = start + list_size / 2;
+            let left = Self::new(&hittables, start, mid);
+            let right = Self::new(&hittables, mid, end);
             BVH {
-                left: None,
-                right: None,
-                hittable: Some(hittable_list.v[start]),
-                bbox: hittable_list.v[start].bbox().clone(),
+                left: Some(left),
+                right: Some(right),
+                hittable: None,
+                bbox: AABB::from_aabb(&left.bbox, &right.bbox),
             }
         }
         // let (left, right) = if list_size == 1{

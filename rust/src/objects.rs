@@ -70,7 +70,7 @@ impl Hittable<HitRecord> for Sphere {
 }
 
 /// Axis Aligned Bounding Box
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct AABB {
     x: Interval,
     y: Interval,
