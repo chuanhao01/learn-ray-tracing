@@ -45,51 +45,51 @@ fn test_scene() {
 
     let world = vec![
         // Top 3 to see
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(-1.0, 1.0, -0.7),
-            radius: 0.5,
-            material: Arc::clone(&material_red),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(0.0, 1.0, -0.7),
-            radius: 0.5,
-            material: Arc::clone(&material_green),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(1.0, 1.0, -0.7),
-            radius: 0.5,
-            material: Arc::clone(&material_blue),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(-0.8, 0.0, -1.0),
-            radius: 0.2,
-            material: Arc::clone(&material_metal),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(-0.3, 0.0, -1.0),
-            radius: 0.2,
-            material: Arc::clone(&material_metal_fuzzy),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(0.3, 0.0, -1.0),
-            radius: 0.2,
-            material: Arc::clone(&material_glass),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(0.8, 0.0, -1.0),
-            radius: -0.15,
-            material: Arc::clone(&material_glass),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(0.8, 0.0, -1.0),
-            radius: 0.2,
-            material: Arc::clone(&material_glass),
-        }),
-        Hittables::Sphere(Sphere {
-            center: Vec3::new(0_f64, -100.5_f64, -1_f64),
-            radius: 100_f64,
-            material: material_ground,
-        }),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(-1.0, 1.0, -0.7),
+            0.5,
+            Arc::clone(&material_red),
+        )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(0.0, 1.0, -0.7),
+            0.5,
+            Arc::clone(&material_green),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(1.0, 1.0, -0.7),
+            0.5,
+            Arc::clone(&material_blue),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(-0.8, 0.0, -1.0),
+            0.2,
+            Arc::clone(&material_metal),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(-0.3, 0.0, -1.0),
+            0.2,
+            Arc::clone(&material_metal_fuzzy),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(0.3, 0.0, -1.0),
+            0.2,
+            Arc::clone(&material_glass),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(0.8, 0.0, -1.0),
+            -0.15,
+            Arc::clone(&material_glass),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(0.8, 0.0, -1.0),
+            0.2,
+            Arc::clone(&material_glass),
+         )),
+        Hittables::Sphere(Sphere::new(
+            Vec3::new(0_f64, -100.5_f64, -1_f64),
+            100_f64,
+            material_ground,
+         )),
     ];
 
     eprintln!("{:?}", camera);
