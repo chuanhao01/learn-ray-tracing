@@ -17,7 +17,6 @@ impl Ray {
         self.origin.clone() + t * self.direction.clone()
     }
 }
-
 impl Display for Ray {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

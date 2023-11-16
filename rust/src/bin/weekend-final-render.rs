@@ -17,7 +17,7 @@ fn main() {
         Vec3::new_int(0, -1000, 0),
         1000.0,
         ground_material,
-     )));
+    )));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -48,7 +48,7 @@ fn main() {
                     center,
                     0.2,
                     Arc::new(sphere_material),
-                 )))
+                )))
             }
         }
     }
@@ -59,19 +59,19 @@ fn main() {
         Arc::new(Materials::Dielectric(Dielectric {
             index_of_reflectance: 1.5,
         })),
-     )));
+    )));
     world.push(Hittables::Sphere(Sphere::new(
         Vec3::new_int(-4, 1, 0),
         1.0,
         Arc::new(Materials::Lambertain(Lambertain {
             albedo: Vec3::new(0.4, 0.2, 0.1),
         })),
-     )));
+    )));
     world.push(Hittables::Sphere(Sphere::new(
         Vec3::new_int(4, 1, 0),
         1.0,
         Arc::new(Materials::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0))),
-     )));
+    )));
 
     let camera_params = CameraParams {
         samples_per_pixel: 100,

@@ -50,30 +50,43 @@ pub struct HittableList {
     bbox: AABB,
 }
 impl HittableList {
+    /// Create an empty HittableList
+    pub fn new() -> Self {
+        Self {
+            v: Vec::new(),
+            bbox: AABB::default(),
+        }
+    }
+
     /// Adds a new Hittable into the list
-    pub fn add(mut self, hittable: Hittables) {
+    pub fn add(&mut self, hittable: Hittables) {
         // Dont think this is needed anywhere?
         self.bbox = AABB::from_aabb(&self.bbox, hittable.bbox());
         self.v.push(Arc::new(hittable));
     }
     /// Method to get the length of Hittables
-    pub fn len(self) -> usize {
+    pub fn len(&self) -> usize {
         self.v.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.v.is_empty()
     }
 }
 
 /// Bounding volume hierarchy
 pub struct BVH {
-    left: Option<BVH>,
-    right: Option<BVH>,
+    left: Option<Box<BVH>>,
+    right: Option<Box<BVH>>,
     bbox: AABB,
     hittable: Option<Arc<Hittables>>,
 }
 impl BVH {
     pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
-        Self::new(&hittable_list.v, 0, hittable_list.len())
+        Self::new(&hittable_list.v[..], 0, hittable_list.len())
     }
-    fn new(hittables: &Vec<Arc<Hittables>>, start: usize, end: usize) -> Self {
+    #[allow(clippy::clone_on_copy)]
+    fn new(hittables: &[Arc<Hittables>], start: usize, end: usize) -> Self {
         let mut rng = thread_rng();
         let axis = rng.gen_range(0_i64..3_i64);
 
@@ -103,45 +116,69 @@ impl BVH {
             }
         } else if list_size == 2 {
             BVH {
-                left: Some(BVH {
+                left: Some(Box::new(BVH {
                     left: None,
                     right: None,
                     hittable: Some(hittables[start].clone()),
                     bbox: hittables[start].bbox().clone(),
-                }),
-                right: Some(BVH {
+                })),
+                right: Some(Box::new(BVH {
                     left: None,
                     right: None,
                     hittable: Some(hittables[end - 1].clone()),
                     bbox: hittables[end - 1].bbox().clone(),
-                }),
+                })),
                 hittable: None,
                 bbox: AABB::from_aabb(hittables[start].bbox(), hittables[end - 1].bbox()),
             }
         } else {
-            let mut hittables = hittables.clone();
+            let mut hittables = hittables.to_vec();
             hittables.sort_by(hittable_comparer);
             let mid = start + list_size / 2;
             let left = Self::new(&hittables, start, mid);
             let right = Self::new(&hittables, mid, end);
+            let bbox = AABB::from_aabb(&left.bbox, &right.bbox);
             BVH {
-                left: Some(left),
-                right: Some(right),
+                left: Some(Box::new(left)),
+                right: Some(Box::new(right)),
                 hittable: None,
-                bbox: AABB::from_aabb(&left.bbox, &right.bbox),
+                bbox,
             }
         }
-        // let (left, right) = if list_size == 1{
-        //     // (hittable_list.v[start], hittable_list.v[start])
-        // } else if list_size == 2 {
-        //     (hittable_list.v[start], hittable_list.v[end])
-        // } else if list_size == 3 {
-        //     (BVH::new(hittable_list, start, start+1), hittable_list.v[end])
-        // } else {
-        //     let hittable_list = hittable_list.v.clone().sort_by(hittable_comparer);
-        //     let mid = start + list_size / 2;
-        //     (BVH::new(hittable_list, start, mid), BVH::new(hittable_list, mid, end))
-        // }
+    }
+}
+impl Hittable<HitRecord> for BVH {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+        // Deal with base case of outer leaf node
+        if let (None, None) = (&self.left, &self.right) {
+            match &self.hittable {
+                Some(hittable) => return hittable.hit(_ray, valid_t_interval),
+                None => panic!("Hittable should exist for outer BVH node"),
+            };
+        }
+
+        // Check if we don't hit the bbox of the BVH (Nicer rust code)
+        self.bbox.hit(_ray, valid_t_interval)?;
+
+        // Hit left or right if it exists
+        match (&self.left, &self.right) {
+            (Some(left), Some(right)) => {
+                let mut valid_t_interval = valid_t_interval;
+                if let Some(left_hit) = left.hit(_ray, valid_t_interval) {
+                    valid_t_interval.max = left_hit.t;
+                    if let Some(right_hit) = right.hit(_ray, valid_t_interval) {
+                        Some(right_hit)
+                    } else {
+                        Some(left_hit)
+                    }
+                } else {
+                    right.hit(_ray, valid_t_interval)
+                }
+            }
+            // Only either left or right exists
+            (None, Some(bvh)) | (Some(bvh), None) => bvh.hit(_ray, valid_t_interval),
+            (None, None) => None,
+        }
     }
 }
 
@@ -164,5 +201,32 @@ impl Hittable<HitRecord> for Vec<Hittables> {
                 }
             });
         result
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::Sphere;
+
+    use super::*;
+
+    #[test]
+    fn test_bvh_from_hittable_list() {
+        let mut hittable_list = HittableList::new();
+        hittable_list.add(Hittables::Sphere(Sphere::new(
+            Vec3::new_int(0, 0, 0),
+            1.0,
+            Arc::new(Materials::None),
+        )));
+        hittable_list.add(Hittables::None);
+        hittable_list.add(Hittables::None);
+        hittable_list.add(Hittables::None);
+
+        let bvh = BVH::from_hittable_list(&hittable_list);
+        // Bad Rust code, but oh well its for a test
+        if let Hittables::Sphere(ref sphere) = *bvh.left.unwrap().left.unwrap().hittable.unwrap() {
+            assert_eq!(sphere.radius, 1.0);
+            assert!(matches!(*sphere.material, Materials::None))
+        }
     }
 }

@@ -6,7 +6,7 @@ use rand::prelude::thread_rng;
 use rand::Rng;
 
 use crate::materials::Scatterable;
-use crate::{Hittable, Hittables, Interval};
+use crate::{Hittable, Hittables, Interval, BVH};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -142,7 +142,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &Vec<Hittables>) {
+    pub fn render(&self, world: &BVH) {
         println!("P3");
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
@@ -183,7 +183,7 @@ impl Camera {
 
     /// Takes a ray and simulates ray tracing on it
     #[allow(clippy::only_used_in_recursion)]
-    fn color_ray(&self, _ray: &Ray, _world: &Vec<Hittables>, max_depth: i64) -> Vec3 {
+    fn color_ray(&self, _ray: &Ray, _world: &BVH, max_depth: i64) -> Vec3 {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }

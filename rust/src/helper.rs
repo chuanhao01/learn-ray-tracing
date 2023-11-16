@@ -97,6 +97,16 @@ mod test {
         let i = Interval::default();
         assert_eq!(i.min, 0_f64);
         assert_eq!(i.max, 0_f64);
+
+        let new_interval = Interval::from_interval(
+            &i,
+            &Interval {
+                min: -3_f64,
+                max: 3_f64,
+            },
+        );
+        assert_eq!(new_interval.min, -3_f64);
+        assert_eq!(new_interval.max, 3_f64);
     }
 
     #[test]

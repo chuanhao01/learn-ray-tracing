@@ -32,7 +32,6 @@ impl Sphere {
         }
     }
 }
-
 impl Hittable<HitRecord> for Sphere {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let a_minus_c = _ray.origin.clone() - self.center.clone();

@@ -2,18 +2,18 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 use rust_simple_raytracer::{
-    materials::Dielectric, Camera, CameraParams, Hittables, Lambertain, Materials, Metal, Sphere,
-    Vec3,
+    materials::Dielectric, Camera, CameraParams, HittableList, Hittables, Lambertain, Materials,
+    Metal, Sphere, Vec3, BVH,
 };
 
 fn main() {
     let mut rng = thread_rng();
 
-    let mut world: Vec<Hittables> = Vec::new();
+    let mut world = HittableList::new();
     let ground_material = Arc::new(Materials::Lambertain(Lambertain {
         albedo: Vec3::new(0.5, 0.5, 0.5),
     }));
-    world.push(Hittables::Sphere(Sphere::new(
+    world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(0, -1000, 0),
         1000.0,
         ground_material,
@@ -44,7 +44,7 @@ fn main() {
                     })
                 };
 
-                world.push(Hittables::Sphere(Sphere::new(
+                world.add(Hittables::Sphere(Sphere::new(
                     center,
                     0.2,
                     Arc::new(sphere_material),
@@ -53,29 +53,30 @@ fn main() {
         }
     }
 
-    world.push(Hittables::Sphere(Sphere::new(
+    world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(0, 1, 0),
         1.0,
         Arc::new(Materials::Dielectric(Dielectric {
             index_of_reflectance: 1.5,
         })),
     )));
-    world.push(Hittables::Sphere(Sphere::new(
+    world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(-4, 1, 0),
         1.0,
         Arc::new(Materials::Lambertain(Lambertain {
             albedo: Vec3::new(0.4, 0.2, 0.1),
         })),
     )));
-    world.push(Hittables::Sphere(Sphere::new(
+    world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(4, 1, 0),
         1.0,
         Arc::new(Materials::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0))),
     )));
+    let world = BVH::from_hittable_list(&world);
 
     let camera_params = CameraParams {
-        samples_per_pixel: 100,
-        max_depth: 50,
+        samples_per_pixel: 200,
+        max_depth: 100,
         image_width: 400,
         fov: 20_f64,
         look_from: Vec3::new_int(13, 2, 3),
