@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 use rust_simple_raytracer::{
-    materials::Dielectric, Camera, CameraParams, HittableList, Hittables, Lambertain, Materials,
-    Metal, Sphere, Vec3, BVH,
+    Camera, CameraParams, Dielectric, HittableList, Hittables, Lambertain, Materials, Metal,
+    Sphere, Vec3, BVH,
 };
 
 fn main() {
@@ -75,14 +75,14 @@ fn main() {
     let world = BVH::from_hittable_list(&world);
 
     let camera_params = CameraParams {
-        samples_per_pixel: 200,
-        max_depth: 100,
-        image_width: 400,
+        samples_per_pixel: 20,
+        max_depth: 5,
+        image_width: 600,
         fov: 20_f64,
         look_from: Vec3::new_int(13, 2, 3),
         look_at: Vec3::new_int(0, 0, 0),
         v_up: Vec3::new_int(0, 1, 0),
-        focus_angle: 0.6_f64,
+        focus_angle: 0_f64,
         focus_distance: 10.0,
         ..Default::default()
     };

@@ -1,22 +1,11 @@
-use std::sync::Arc;
+use std::{fmt::format, sync::Arc};
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, HittableList, Hittables, Lambertain, Materials, Metal,
-    Sphere, Vec3, BVH,
+    materials::Dielectric, Camera, CameraParams, HittableList, Hittables, Lambertain, Materials,
+    Metal, Sphere, Vec3, BVH,
 };
 
 fn test_scene() {
-    let camera_params = CameraParams {
-        samples_per_pixel: 2,
-        max_depth: 20,
-        image_width: 400,
-        fov: 70_f64,
-        // focus_angle: 3_f64,
-        // focus_distance: 0.4,
-        ..Default::default()
-    };
-    let camera = Camera::new(camera_params);
-
     let material_ground = Arc::new(Materials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
     }));
@@ -59,42 +48,9 @@ fn test_scene() {
         0.5,
         Arc::clone(&material_blue),
     )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(-0.8, 0.0, -1.0),
-        0.2,
-        Arc::clone(&material_metal),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(-0.3, 0.0, -1.0),
-        0.2,
-        Arc::clone(&material_metal_fuzzy),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0.3, 0.0, -1.0),
-        0.2,
-        Arc::clone(&material_glass),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0.8, 0.0, -1.0),
-        -0.15,
-        Arc::clone(&material_glass),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0.8, 0.0, -1.0),
-        0.2,
-        Arc::clone(&material_glass),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0_f64, -100.5_f64, -1_f64),
-        100_f64,
-        material_ground,
-    )));
     let world = BVH::from_hittable_list(&hittable_list);
 
-    eprintln!("{:?}", camera);
-    // eprintln!("{}", world);
-    camera.render(&world);
-    eprintln!("len: {}", hittable_list.len());
+    eprintln!("{}", world);
 }
 
 fn main() {
