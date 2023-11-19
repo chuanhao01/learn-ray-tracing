@@ -42,6 +42,25 @@ pub struct CameraParams {
     pub focus_angle: f64,
     /// Distance from Camera center to focus plane
     pub focus_distance: f64,
+    /// Background color (When the ray misses the world)
+    pub background: Vec3,
+}
+impl Default for CameraParams {
+    fn default() -> Self {
+        CameraParams {
+            image_width: 400,
+            aspect_ratio: 16_f64 / 9_f64,
+            samples_per_pixel: 50,
+            max_depth: 20,
+            fov: 90_f64,
+            look_from: Vec3::new_int(0, 0, 0),
+            look_at: Vec3::new_int(0, 0, -1),
+            v_up: Vec3::new_int(0, 1, 0),
+            focus_angle: 0_f64,
+            focus_distance: 1_f64,
+            background: Vec3::new(0.7, 0.8, 1.0),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -54,6 +73,7 @@ pub struct Camera {
     max_depth: i64,
 
     focus_angle: f64,
+    background: Vec3,
 
     /// Point of the Camera center (Same as [CameraParams.look_from])
     center: Vec3,
@@ -77,23 +97,6 @@ pub struct Camera {
     defocus_disk_u: Vec3,
     /// Vector v of the defocus disk (y-axis length)
     defocus_disk_v: Vec3,
-}
-
-impl Default for CameraParams {
-    fn default() -> Self {
-        CameraParams {
-            image_width: 400,
-            aspect_ratio: 16_f64 / 9_f64,
-            samples_per_pixel: 50,
-            max_depth: 20,
-            fov: 90_f64,
-            look_from: Vec3::new_int(0, 0, 0),
-            look_at: Vec3::new_int(0, 0, -1),
-            v_up: Vec3::new_int(0, 1, 0),
-            focus_angle: 0_f64,
-            focus_distance: 1_f64,
-        }
-    }
 }
 
 impl Camera {
@@ -130,6 +133,7 @@ impl Camera {
             samples_per_pixel: camera_params.samples_per_pixel,
             max_depth: camera_params.max_depth,
             focus_angle: camera_params.focus_angle,
+            background: camera_params.background.clone(),
             center: camera_params.look_from.clone(),
             u: u.clone(),
             v: v.clone(),
@@ -204,12 +208,8 @@ impl Camera {
         ) {
             Some(hit_record) => hit_record,
             None => {
-                // Did not hit anything in the _world, return "sky light"
-                // Interpolation of y value for sky color
-                let ray_direction_unit = _ray.direction.unit_vector();
-                let a = 0.5_f64 * (ray_direction_unit.y() + 1_f64);
-                return (1_f64 - a) * Vec3::new(1_f64, 1_f64, 1_f64)
-                    + a * Vec3::new(0.5_f64, 0.7_f64, 1.0_f64);
+                // Did not hit anything in the _world, return background
+                return self.background.clone();
             }
         };
 
