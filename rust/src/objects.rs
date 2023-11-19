@@ -14,6 +14,11 @@ pub use sphere::Sphere;
 pub trait HittableObject: Hittable<HitRecord> {
     fn bbox(&self) -> &AABB;
 }
+trait PlanarObject {
+    /// Checks if the given alpha and beta values, based on the plane bases and origin
+    /// Lie within the planar object
+    fn is_in_planar_object(alpha: f64, beta: f64) -> bool;
+}
 
 pub enum Hittables {
     Sphere(Sphere),
