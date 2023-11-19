@@ -127,19 +127,28 @@ impl Scatterable for Dielectric {
     }
 }
 
-pub enum Materials {
+pub enum ScatterMaterials {
     Lambertain(Lambertain),
     Metal(Metal),
     Dielectric(Dielectric),
     None,
 }
-impl Scatterable for Materials {
+impl Scatterable for ScatterMaterials {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
         match self {
-            Materials::Lambertain(lambertain) => lambertain.scatter(_ray, hit_record),
-            Materials::Metal(metal) => metal.scatter(_ray, hit_record),
-            Materials::Dielectric(dielectric) => dielectric.scatter(_ray, hit_record),
-            Materials::None => None,
+            ScatterMaterials::Lambertain(lambertain) => lambertain.scatter(_ray, hit_record),
+            ScatterMaterials::Metal(metal) => metal.scatter(_ray, hit_record),
+            ScatterMaterials::Dielectric(dielectric) => dielectric.scatter(_ray, hit_record),
+            ScatterMaterials::None => None,
         }
     }
+}
+
+pub enum LightMaterials {
+    None,
+}
+
+pub enum Materials {
+    ScatterMaterial(ScatterMaterials),
+    LightMaterial(LightMaterials),
 }

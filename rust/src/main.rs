@@ -2,15 +2,15 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal,
-    Sphere, Vec3, BVH,
+    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Metal,
+    ScatterMaterials, Sphere, Vec3, BVH,
 };
 
 fn main() {
     let mut rng = thread_rng();
 
     let mut world = HittablesList::new();
-    let ground_material = Arc::new(Materials::Lambertain(Lambertain {
+    let ground_material = Arc::new(ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.5, 0.5, 0.5),
     }));
     world.add(Hittables::Sphere(Sphere::new(
@@ -32,14 +32,14 @@ fn main() {
                 let sphere_material = if choose_mat < 0.8 {
                     // Lambertain
                     let albedo = Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0);
-                    Materials::Lambertain(Lambertain { albedo })
+                    ScatterMaterials::Lambertain(Lambertain { albedo })
                 } else if choose_mat < 0.95 {
                     // Metal
                     let albedo = Vec3::random(0.5, 1.0);
                     let fuzz = rng.gen_range(0.0..0.5);
-                    Materials::Metal(Metal::new(albedo, fuzz))
+                    ScatterMaterials::Metal(Metal::new(albedo, fuzz))
                 } else {
-                    Materials::Dielectric(Dielectric {
+                    ScatterMaterials::Dielectric(Dielectric {
                         index_of_reflectance: 1.5,
                     })
                 };
@@ -56,21 +56,24 @@ fn main() {
     world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(0, 1, 0),
         1.0,
-        Arc::new(Materials::Dielectric(Dielectric {
+        Arc::new(ScatterMaterials::Dielectric(Dielectric {
             index_of_reflectance: 1.5,
         })),
     )));
     world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(-4, 1, 0),
         1.0,
-        Arc::new(Materials::Lambertain(Lambertain {
+        Arc::new(ScatterMaterials::Lambertain(Lambertain {
             albedo: Vec3::new(0.4, 0.2, 0.1),
         })),
     )));
     world.add(Hittables::Sphere(Sphere::new(
         Vec3::new_int(4, 1, 0),
         1.0,
-        Arc::new(Materials::Metal(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0))),
+        Arc::new(ScatterMaterials::Metal(Metal::new(
+            Vec3::new(0.7, 0.6, 0.5),
+            0.0,
+        ))),
     )));
     let world = BVH::from_hittable_list(&world);
 

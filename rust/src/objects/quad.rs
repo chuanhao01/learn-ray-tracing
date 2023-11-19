@@ -1,6 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
+use crate::{HitRecord, Hittable, Interval, Ray, ScatterMaterials, Vec3, AABB};
 
 use super::{HittableObject, PlanarObject};
 
@@ -13,7 +13,7 @@ pub struct Quad {
     pub u: Vec3,
     /// v Vector of the quad (Up facing)
     pub v: Vec3,
-    pub material: Arc<Materials>,
+    pub material: Arc<ScatterMaterials>,
     bbox: AABB,
     // Note: The implicit formula for the Plane is based on the plane's unit normal to calculate D
     /// Normal of the plane the Quad is in
@@ -26,7 +26,7 @@ pub struct Quad {
 }
 #[allow(non_snake_case)]
 impl Quad {
-    pub fn new(Q: Vec3, u: Vec3, v: Vec3, material: Arc<Materials>) -> Self {
+    pub fn new(Q: Vec3, u: Vec3, v: Vec3, material: Arc<ScatterMaterials>) -> Self {
         let n = Vec3::cross(&u, &v);
         let plane_unit_normal = Vec3::unit_vector(&n);
         Self {

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, Hittables, Lambertain, Materials, Metal, Sphere, Vec3,
+    Camera, CameraParams, Dielectric, Hittables, Lambertain, Metal, ScatterMaterials, Sphere, Vec3,
 };
 
 #[allow(clippy::vec_init_then_push)]
@@ -17,29 +17,29 @@ fn test_scene() {
     };
     let camera = Camera::new(camera_params);
 
-    let material_ground = Arc::new(Materials::Lambertain(Lambertain {
+    let material_ground = Arc::new(ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
     }));
 
-    let material_red = Arc::new(Materials::Lambertain(Lambertain {
+    let material_red = Arc::new(ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
     }));
-    let material_green = Arc::new(Materials::Lambertain(Lambertain {
+    let material_green = Arc::new(ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.8_f64, 0.0_f64),
     }));
-    let material_blue = Arc::new(Materials::Lambertain(Lambertain {
+    let material_blue = Arc::new(ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.0_f64, 0.8_f64),
     }));
 
-    let material_metal = Arc::new(Materials::Metal(Metal::new(
+    let material_metal = Arc::new(ScatterMaterials::Metal(Metal::new(
         Vec3::new(0.1_f64, 0.2_f64, 0.5_f64),
         0.0_f64,
     )));
-    let material_metal_fuzzy = Arc::new(Materials::Metal(Metal::new(
+    let material_metal_fuzzy = Arc::new(ScatterMaterials::Metal(Metal::new(
         Vec3::new(0.1_f64, 0.2_f64, 0.5_f64),
         0.3_f64,
     )));
-    let material_glass = Arc::new(Materials::Dielectric(Dielectric {
+    let material_glass = Arc::new(ScatterMaterials::Dielectric(Dielectric {
         index_of_reflectance: 1.4,
     }));
 
