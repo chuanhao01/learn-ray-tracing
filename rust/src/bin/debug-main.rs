@@ -1,10 +1,10 @@
-use std::{fmt::format, sync::Arc};
+use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    materials::Dielectric, Camera, CameraParams, HittableList, Hittables, Lambertain, Materials,
-    Metal, Sphere, Vec3, BVH,
+    materials::Dielectric, HittableList, Hittables, Lambertain, Materials, Metal, Sphere, Vec3, BVH,
 };
 
+#[allow(unused_variables)]
 fn test_scene() {
     let material_ground = Arc::new(Materials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),

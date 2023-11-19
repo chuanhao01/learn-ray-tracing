@@ -6,7 +6,7 @@ use rand::prelude::thread_rng;
 use rand::Rng;
 
 use crate::materials::Scatterable;
-use crate::{HitRecord, Hittable, Hittables, Interval, BVH};
+use crate::{HitRecord, Hittable, Interval};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -180,7 +180,6 @@ impl Camera {
                             acc
                         },
                     );
-                // pixel_color += self.color_ray(&ray, world, self.max_depth);
                 let (pixel_r, pixel_g, pixel_b) =
                     color_to_rgb(&pixel_color, self.samples_per_pixel);
                 println!("{}, {}, {}", pixel_r, pixel_g, pixel_b);

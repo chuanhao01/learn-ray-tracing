@@ -133,7 +133,6 @@ pub enum Materials {
     Dielectric(Dielectric),
     None,
 }
-
 impl Scatterable for Materials {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
         match self {
