@@ -80,10 +80,10 @@ fn test_scene() {
         Arc::clone(&material_red),
     )));
     hittable_list.add(Hittables::Quad(Quad::new(
-        Vec3::new(0.25, -0.25, -1.0),
-        Vec3::new(0.75, 0.0, 0.0),
+        Vec3::new(0.25, -0.25, -1.5),
+        Vec3::new(0.75, 0.0, 0.5),
         Vec3::new(0.0, 0.75, 0.0),
-        material_blue,
+        material_metal,
     )));
     hittable_list.add(Hittables::Sphere(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
