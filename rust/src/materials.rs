@@ -127,6 +127,10 @@ impl Scatterable for Dielectric {
     }
 }
 
+pub trait Emittable {
+    fn emit(&self) -> Vec3;
+}
+
 pub enum ScatterMaterials {
     Lambertain(Lambertain),
     Metal(Metal),
@@ -144,15 +148,7 @@ impl Scatterable for ScatterMaterials {
     }
 }
 
-pub enum LightMaterials {
-    None,
-}
-
 pub enum Materials {
     ScatterMaterial(ScatterMaterials),
-    LightMaterial(LightMaterials),
-}
-
-macro_rules! create_material {
-    () => {};
+    LightMaterial,
 }

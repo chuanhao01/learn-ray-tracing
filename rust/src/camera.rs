@@ -226,7 +226,8 @@ impl Camera {
                     }
                 }
             }
-            Materials::LightMaterial(_) => Vec3::new_int(0, 0, 0),
+            // Hit a diffuse light source
+            Materials::LightMaterial => Vec3::new_int(1, 1, 1),
         }
         // match hit_record.material.scatter(_ray, &hit_record) {
         //     Some(scattered) => {
