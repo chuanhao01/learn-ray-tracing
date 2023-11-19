@@ -1,6 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Ray, ScatterMaterials, Vec3, AABB};
+use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
 
 use super::HittableObject;
 
@@ -9,11 +9,11 @@ use super::HittableObject;
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
-    pub material: Arc<ScatterMaterials>,
+    pub material: Arc<Materials>,
     bbox: AABB,
 }
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, material: Arc<ScatterMaterials>) -> Self {
+    pub fn new(center: Vec3, radius: f64, material: Arc<Materials>) -> Self {
         let radius_v = Vec3::new(radius, radius, radius);
         let bbox = AABB::from_points(
             &(center.clone() - radius_v.clone()),
@@ -79,12 +79,14 @@ impl Display for Sphere {
 
 #[cfg(test)]
 mod test {
+    use crate::ScatterMaterials;
+
     use super::*;
     use std::f64::INFINITY;
 
     #[test]
     fn test_sphere_new() {
-        let mat = Arc::new(ScatterMaterials::None);
+        let mat = Arc::new(Materials::ScatterMaterial(ScatterMaterials::None));
         let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
         assert_eq!(s.bbox.x.min, -1.0);
         assert_eq!(s.bbox.y.min, -1.0);
@@ -98,7 +100,7 @@ mod test {
     #[test]
     fn test_sphere_hit() {
         // Ensure the ray hits the sphere
-        let mat = Arc::new(ScatterMaterials::None);
+        let mat = Arc::new(Materials::ScatterMaterial(ScatterMaterials::None));
         let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
         let r = Ray {
             direction: Vec3::new_int(0, 0, 1),

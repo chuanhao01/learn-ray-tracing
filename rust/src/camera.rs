@@ -6,7 +6,7 @@ use rand::prelude::thread_rng;
 use rand::Rng;
 
 use crate::materials::Scatterable;
-use crate::{HitRecord, Hittable, Interval};
+use crate::{HitRecord, Hittable, Interval, Materials};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -213,12 +213,27 @@ impl Camera {
             }
         };
 
-        match hit_record.material.scatter(_ray, &hit_record) {
-            Some(scattered) => {
-                scattered.attenuation * self.color_ray(&scattered.ray, _world, max_depth - 1)
+        match *hit_record.material {
+            Materials::ScatterMaterial(ref scatter_material) => {
+                match scatter_material.scatter(_ray, &hit_record) {
+                    Some(scattered) => {
+                        scattered.attenuation
+                            * self.color_ray(&scattered.ray, _world, max_depth - 1)
+                    }
+                    None => {
+                        // Scattered light is absorbed by the material
+                        Vec3::new_int(0, 0, 0)
+                    }
+                }
             }
-            None => Vec3::new_int(0, 0, 0), // If the material absorbs the light
+            Materials::LightMaterial(_) => Vec3::new_int(0, 0, 0),
         }
+        // match hit_record.material.scatter(_ray, &hit_record) {
+        //     Some(scattered) => {
+        //         scattered.attenuation * self.color_ray(&scattered.ray, _world, max_depth - 1)
+        //     }
+        //     None => Vec3::new_int(0, 0, 0), // If the material absorbs the light
+        // }
     }
     fn get_ray(&self, y: i64, x: i64) -> Ray {
         let pixel_center = self.pixel_00_loc.clone()

@@ -152,3 +152,7 @@ pub enum Materials {
     ScatterMaterial(ScatterMaterials),
     LightMaterial(LightMaterials),
 }
+
+macro_rules! create_material {
+    () => {};
+}
