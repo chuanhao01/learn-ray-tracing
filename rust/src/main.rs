@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, HittableList, Hittables, Lambertain, Materials, Metal,
+    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal,
     Sphere, Vec3, BVH,
 };
 
 fn main() {
     let mut rng = thread_rng();
 
-    let mut world = HittableList::new();
+    let mut world = HittablesList::new();
     let ground_material = Arc::new(Materials::Lambertain(Lambertain {
         albedo: Vec3::new(0.5, 0.5, 0.5),
     }));

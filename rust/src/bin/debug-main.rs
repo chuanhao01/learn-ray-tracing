@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    materials::Dielectric, HittableList, Hittables, Lambertain, Materials, Metal, Sphere, Vec3, BVH,
+    materials::Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal, Sphere, Vec3,
+    BVH,
 };
 
 #[allow(unused_variables)]
@@ -32,7 +33,7 @@ fn test_scene() {
         index_of_reflectance: 1.4,
     }));
 
-    let mut hittable_list = HittableList::new();
+    let mut hittable_list = HittablesList::new();
     hittable_list.add(Hittables::Sphere(Sphere::new(
         Vec3::new(-1.0, 1.0, -0.7),
         0.5,

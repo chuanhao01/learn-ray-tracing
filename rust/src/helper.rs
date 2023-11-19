@@ -36,7 +36,6 @@ pub struct Interval {
     /// Right bound
     pub max: f64,
 }
-
 impl Interval {
     /// Creates an interval that encapsulates both input intervals (i.e. a larger than both intervals)
     pub fn from_interval(a: &Self, b: &Self) -> Self {

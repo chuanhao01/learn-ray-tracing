@@ -8,7 +8,8 @@ pub mod vec3;
 
 pub use camera::{Camera, CameraParams};
 pub use helper::Interval;
-pub use hittable::{HitRecord, Hittable, HittableList, BVH};
+pub use hittable::{HitRecord, Hittable, HittablesList, BVH};
 pub use materials::{Dielectric, Lambertain, Materials, Metal, Scattered};
-pub use objects::{Hittables, Sphere};
+pub use objects::{Hittables, Sphere, AABB};
+pub use ray::Ray;
 pub use vec3::Vec3;

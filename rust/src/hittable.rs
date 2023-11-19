@@ -16,7 +16,6 @@ pub struct HitRecord {
     /// If the ray hits from the outside
     pub front_face: bool,
 }
-
 impl HitRecord {
     /// Used to create the HitRecord object
     /// Takes in the ray that Hits the object as well as the
@@ -45,11 +44,11 @@ pub trait Hittable<T> {
 /// A Hittable List to hold all the Hittables in the world
 /// Do create the object with a default and use the [HittableList::add] method to add Hittables to the list
 #[derive(Default)]
-pub struct HittableList {
+pub struct HittablesList {
     pub v: Vec<Arc<Hittables>>,
     bbox: AABB,
 }
-impl HittableList {
+impl HittablesList {
     /// Create an empty HittableList
     pub fn new() -> Self {
         Self {
@@ -82,7 +81,7 @@ pub struct BVH {
     hittable: Option<Arc<Hittables>>,
 }
 impl BVH {
-    pub fn from_hittable_list(hittable_list: &HittableList) -> Self {
+    pub fn from_hittable_list(hittable_list: &HittablesList) -> Self {
         Self::new(&hittable_list.v[..], 0, hittable_list.len())
     }
     #[allow(clippy::clone_on_copy)]
@@ -270,7 +269,7 @@ mod test {
 
     #[test]
     fn test_bvh_from_hittable_list() {
-        let mut hittable_list = HittableList::new();
+        let mut hittable_list = HittablesList::new();
         hittable_list.add(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, 0),
             1.0,
@@ -289,7 +288,7 @@ mod test {
     }
     #[test]
     fn test_bvh_hit() {
-        let mut hittable_list = HittableList::new();
+        let mut hittable_list = HittablesList::new();
         hittable_list.add(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, -1),
             0.5,
