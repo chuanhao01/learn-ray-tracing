@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, fmt::Display};
 
 use super::Vec3;
 
@@ -65,6 +65,11 @@ impl Interval {
     /// Checks if provided x is `l < x < r`
     pub fn surrounds(&self, x: f64) -> bool {
         self.min < x && x < self.max
+    }
+}
+impl Display for Interval {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Interval(min: {}, max: {})", self.min, self.max)
     }
 }
 

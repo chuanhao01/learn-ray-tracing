@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+use std::fmt::Display;
 use std::sync::Arc;
 
 use crate::helper::Interval;
@@ -16,7 +18,6 @@ pub struct Sphere {
     pub material: Arc<Materials>,
     pub bbox: AABB,
 }
-
 impl Sphere {
     pub fn new(center: Vec3, radius: f64, material: Arc<Materials>) -> Self {
         let radius_v = Vec3::new(radius, radius, radius);
@@ -67,6 +68,15 @@ impl Hittable<HitRecord> for Sphere {
         ))
     }
 }
+impl Display for Sphere {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Sphere(center: {}, radius: {})",
+            self.center, self.radius
+        )
+    }
+}
 
 /// Axis Aligned Bounding Box
 #[derive(Default, Clone, Copy)]
@@ -75,7 +85,6 @@ pub struct AABB {
     y: Interval,
     z: Interval,
 }
-
 impl AABB {
     /// Create the AABB given 2 points, with each axis covering from p1 to p2
     pub fn from_points(p1: &Vec3, p2: &Vec3) -> AABB {
@@ -114,7 +123,6 @@ impl AABB {
         }
     }
 }
-
 impl Hittable<Interval> for AABB {
     /// Quick and cheaper check for if the ray will hit the AABB
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Interval> {
@@ -138,11 +146,16 @@ impl Hittable<Interval> for AABB {
 
             // Check if ray still hits within the AABB
             // Because if the t values do not overlap, there does not exists a common t for which the ray stays in the AABB (so hits it)
-            if modified_t_interval.max < modified_t_interval.min {
+            if modified_t_interval.max <= modified_t_interval.min {
                 return None;
             }
         }
         Some(modified_t_interval)
+    }
+}
+impl Display for AABB {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AABB(x: {}, y: {}, z: {})", self.x, self.y, self.z)
     }
 }
 
@@ -150,7 +163,6 @@ pub enum Hittables {
     Sphere(Sphere),
     None,
 }
-
 impl Hittables {
     /// Quick accessor to get the hittable bbox
     pub fn bbox(&self) -> &AABB {
@@ -173,7 +185,6 @@ impl Hittables {
         }
     }
 }
-
 impl Hittable<HitRecord> for Hittables {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         match self {
@@ -182,10 +193,24 @@ impl Hittable<HitRecord> for Hittables {
         }
     }
 }
+impl Display for Hittables {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let obj = match self {
+            Hittables::Sphere(sphere) => sphere.to_string(),
+            Hittables::None => "Nothing".to_owned(),
+        };
+        write!(f, "{}", obj)
+    }
+}
+impl Debug for Hittables {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self, f)
+    }
+}
 
 #[cfg(test)]
 mod test {
-    use std::f64::INFINITY;
+    use core::f64::INFINITY;
 
     use super::*;
 
@@ -267,5 +292,33 @@ mod test {
         assert_eq!(bbox.x.max, 0_f64);
         assert_eq!(bbox.y.max, 0_f64);
         assert_eq!(bbox.z.max, 0_f64);
+    }
+
+    #[test]
+    fn test_aabb_hit() {
+        let aabb = AABB::from_points(&Vec3::new_int(1, 1, 1), &Vec3::new_int(3, 3, 3));
+        let hit = aabb.hit(
+            &Ray {
+                origin: Vec3::new_int(0, 0, 0),
+                direction: Vec3::new_int(1, 1, 1),
+            },
+            Interval {
+                min: 0.001,
+                max: INFINITY,
+            },
+        );
+
+        assert!(matches!(hit, Some(_interval)));
+        let hit = aabb.hit(
+            &Ray {
+                origin: Vec3::new_int(0, 0, 0),
+                direction: Vec3::new_int(-1, 1, 1),
+            },
+            Interval {
+                min: 0.001,
+                max: INFINITY,
+            },
+        );
+        assert!(hit.is_none());
     }
 }
