@@ -5,7 +5,7 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
-use crate::materials::Scatterable;
+use crate::materials::{Emittable, Scatterable};
 use crate::{HitRecord, Hittable, Interval, Materials};
 
 use super::helper::color_to_rgb;
@@ -227,14 +227,8 @@ impl Camera {
                 }
             }
             // Hit a diffuse light source
-            Materials::LightMaterial => Vec3::new_int(1, 1, 1),
+            Materials::LightMaterial(ref light_material) => light_material.emit(),
         }
-        // match hit_record.material.scatter(_ray, &hit_record) {
-        //     Some(scattered) => {
-        //         scattered.attenuation * self.color_ray(&scattered.ray, _world, max_depth - 1)
-        //     }
-        //     None => Vec3::new_int(0, 0, 0), // If the material absorbs the light
-        // }
     }
     fn get_ray(&self, y: i64, x: i64) -> Ray {
         let pixel_center = self.pixel_00_loc.clone()

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Hittables, HittablesList, Lambertain, Materials, Quad, ScatterMaterials,
-    Sphere, Vec3, BVH,
+    Camera, CameraParams, Hittables, HittablesList, Lambertain, LightMaterials, Materials,
+    ScatterMaterials, Sphere, Vec3, BVH,
 };
 
 fn test_scene() {
@@ -16,20 +16,22 @@ fn test_scene() {
             albedo: Vec3::new(1.0, 0.2, 0.2),
         },
     )));
-    let light = Arc::new(Materials::LightMaterial);
+    let light = Arc::new(Materials::LightMaterial(LightMaterials::Diffuse {
+        power: 4.0,
+    }));
 
     let mut hittable_list = HittablesList::new();
     hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0_f64, 1.0, -1_f64),
+        Vec3::new(1_f64, 1.0, -1_f64),
         0.5,
         light.clone(),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
-        Vec3::new(-0.9, -0.5, -0.7),
-        Vec3::new(0.2, 0.0, -0.7),
-        Vec3::new_int(0, 1, 0),
-        light.clone(),
-    )));
+    // hittable_list.add(Hittables::Quad(Quad::new(
+    //     Vec3::new(-0.9, -0.5, -0.7),
+    //     Vec3::new(0.2, 0.0, -0.7),
+    //     Vec3::new_int(0, 1, 0),
+    //     light.clone(),
+    // )));
     hittable_list.add(Hittables::Sphere(Sphere::new(
         Vec3::new(0_f64, 0.0, -1_f64),
         0.5,
@@ -47,7 +49,7 @@ fn test_scene() {
         max_depth: 50,
         fov: 80_f64,
         focus_angle: 0_f64,
-        look_from: Vec3::new(0.25, 0.5, 0.0),
+        look_from: Vec3::new(-1.0, 0.0, 0.0),
         background: Vec3::new(0.0, 0.0, 0.0),
         ..Default::default()
     };

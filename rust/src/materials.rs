@@ -127,10 +127,6 @@ impl Scatterable for Dielectric {
     }
 }
 
-pub trait Emittable {
-    fn emit(&self) -> Vec3;
-}
-
 pub enum ScatterMaterials {
     Lambertain(Lambertain),
     Metal(Metal),
@@ -148,7 +144,22 @@ impl Scatterable for ScatterMaterials {
     }
 }
 
+pub trait Emittable {
+    /// Return the light value of the material
+    fn emit(&self) -> Vec3;
+}
+pub enum LightMaterials {
+    Diffuse { power: f64 },
+}
+impl Emittable for LightMaterials {
+    fn emit(&self) -> Vec3 {
+        match self {
+            LightMaterials::Diffuse { power } => Vec3::new(*power, *power, *power),
+        }
+    }
+}
+
 pub enum Materials {
     ScatterMaterial(ScatterMaterials),
-    LightMaterial,
+    LightMaterial(LightMaterials),
 }
