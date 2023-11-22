@@ -66,8 +66,8 @@ fn test_scene() {
 
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
-        samples_per_pixel: 100,
-        max_depth: 50,
+        samples_per_pixel: 1,
+        max_depth: 100,
         image_width: 600,
         fov: 40_f64,
         focus_angle: 0_f64,

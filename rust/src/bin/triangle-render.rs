@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rust_simple_raytracer::{
     Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal, Quad,
-    ScatterMaterials, Sphere, Vec3, BVH,
+    ScatterMaterials, Sphere, Triangle, Vec3, BVH,
 };
 
 fn test_scene() {
@@ -50,35 +50,35 @@ fn test_scene() {
         Vec3::new_int(0, 4, 0),
         left_red.clone(),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(Hittables::Triangle(Triangle::new(
         Vec3::new_int(-2, -2, 0),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 4, 0),
         back_green.clone(),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(Hittables::Triangle(Triangle::new(
         Vec3::new_int(3, -2, 1),
         Vec3::new_int(0, 0, 4),
         Vec3::new_int(0, 4, 0),
         right_blue.clone(),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(Hittables::Triangle(Triangle::new(
         Vec3::new_int(-2, 3, 1),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 0, 4),
         upper_orange.clone(),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(Hittables::Triangle(Triangle::new(
         Vec3::new_int(-2, -3, 5),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 0, -4),
         lower_teal.clone(),
     )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
-        Vec3::new(0.0, 0.0, 2.0),
-        1.5,
-        material_metal.clone(),
-    )));
+    // hittable_list.add(Hittables::Sphere(Sphere::new(
+    //     Vec3::new(0.0, 0.0, 2.0),
+    //     1.5,
+    //     material_metal.clone(),
+    // )));
     let world = BVH::from_hittable_list(&hittable_list);
 
     let camera_params = CameraParams {

@@ -50,7 +50,7 @@ fn test_scene() {
         fov: 80_f64,
         focus_angle: 0_f64,
         look_from: Vec3::new(-1.0, 0.0, 0.0),
-        background: Vec3::new(0.0, 0.0, 0.0),
+        // background: Vec3::new(0.0, 0.0, 0.0),
         ..Default::default()
     };
     let camera = Camera::new(camera_params);
