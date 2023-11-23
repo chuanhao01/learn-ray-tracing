@@ -29,7 +29,7 @@ impl Disk {
 }
 impl PlanarObject for Disk {
     fn is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
-        alpha * alpha + beta * beta <= self.radius * self.radius
+        (alpha * alpha + beta * beta) <= (self.radius * self.radius)
     }
 }
 impl HittableObject for Disk {
