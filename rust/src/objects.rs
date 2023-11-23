@@ -4,11 +4,13 @@ use std::fmt::Display;
 use crate::{helper::Interval, ray::Ray, HitRecord, Hittable, Vec3};
 
 mod aabb;
+mod disk;
 mod quad;
 mod sphere;
 mod triangle;
 
 pub use aabb::AABB;
+pub use disk::Disk;
 pub use quad::Quad;
 pub use sphere::Sphere;
 pub use triangle::Triangle;
@@ -92,6 +94,7 @@ pub enum Hittables {
     Sphere(Sphere),
     Quad(Quad),
     Triangle(Triangle),
+    Disk(Disk),
     None,
 }
 impl Hittables {
@@ -101,6 +104,7 @@ impl Hittables {
             Hittables::Sphere(sphere) => sphere.bbox(),
             Hittables::Quad(quad) => quad.bbox(),
             Hittables::Triangle(triangle) => triangle.bbox(),
+            Hittables::Disk(disk) => disk.bbox(),
             Hittables::None => &AABB {
                 x: Interval {
                     min: 0_f64,
@@ -124,6 +128,7 @@ impl Hittable<HitRecord> for Hittables {
             Hittables::Sphere(sphere) => sphere.hit(_ray, valid_t_interval),
             Hittables::Quad(quad) => quad.hit(_ray, valid_t_interval),
             Hittables::Triangle(triangle) => triangle.hit(_ray, valid_t_interval),
+            Hittables::Disk(disk) => disk.hit(_ray, valid_t_interval),
             Hittables::None => None,
         }
     }
@@ -134,6 +139,7 @@ impl Display for Hittables {
             Hittables::Sphere(sphere) => sphere.to_string(),
             Hittables::Quad(quad) => quad.to_string(),
             Hittables::Triangle(triangle) => triangle.to_string(),
+            Hittables::Disk(disk) => disk.to_string(),
             Hittables::None => "Nothing".to_owned(),
         };
         write!(f, "{}", obj)
