@@ -152,4 +152,35 @@ impl Debug for Hittables {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use std::f64::INFINITY;
+
+    use super::*;
+
+    #[test]
+    fn test_planar_disk_hit_plane() {
+        let xy_plane = PlanarBase::new(
+            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(1.0, 0.0, 0.0),
+            Vec3::new(0.0, 1.0, 0.0),
+        );
+
+        let negative_alpha_beta_ray = Ray {
+            origin: Vec3::new(0.0, 0.0, -1.0),
+            direction: Vec3::new(-3.0, -4.0, 1.0),
+        };
+        if let Some(negative_alpha_beta_hit) = xy_plane.hit_plane(
+            &negative_alpha_beta_ray,
+            Interval {
+                min: 0.001,
+                max: INFINITY,
+            },
+        ) {
+            assert_eq!(negative_alpha_beta_hit.t, 1.0);
+            assert_eq!(negative_alpha_beta_hit.alpha, -3.0);
+            assert_eq!(negative_alpha_beta_hit.beta, -4.0);
+        } else {
+            panic!("Ray should hit planar base")
+        };
+    }
+}

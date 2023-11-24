@@ -1,6 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Materials, Vec3, AABB};
+use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
 
 use super::{HittableObject, PlanarBase, PlanarObject};
 
@@ -13,16 +13,21 @@ pub struct Disk {
 #[allow(non_snake_case)]
 impl Disk {
     /// Q being the center of the circle
-    /// u being the left pointing vector (in relation to the plane)
-    /// v being the up poiting vector (in relation to the plane)
-    /// raidus being the radius of the disk
+    /// u being the left pointing vector (in relation to the plane, will be converted to a unit vector)
+    /// v being the up poiting vector (in relation to the plane, will be converted to a unit vector)
+    /// raidus being the radius of the disk (In terms of unit vectors in the u and v vector directions)
     pub fn new(Q: Vec3, u: Vec3, v: Vec3, radius: f64, material: Arc<Materials>) -> Self {
+        let u = Vec3::unit_vector(&u);
+        let v = Vec3::unit_vector(&v);
+
+        let bottom_left_corner = Q.clone() - radius * u.clone() - radius * v.clone();
+        let top_left_corner = Q.clone() + radius * u.clone() + radius * v.clone();
         Self {
             planar_base: PlanarBase::new(Q.clone(), u.clone(), v.clone()),
             material,
             // Important Note:
             // bbox requires padding as Some quads can lie on the axis (Size = 0)
-            bbox: AABB::from_points(&Q.clone(), &(Q.clone() + u.clone() + v.clone())).pad(),
+            bbox: AABB::from_points(&bottom_left_corner, &top_left_corner).pad(),
             radius,
         }
     }
@@ -38,14 +43,13 @@ impl HittableObject for Disk {
     }
 }
 impl Hittable<HitRecord> for Disk {
-    fn hit(&self, _ray: &crate::Ray, valid_t_interval: crate::Interval) -> Option<HitRecord> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let plane_hit = match self.planar_base.hit_plane(_ray, valid_t_interval) {
             Some(plane_hit) => plane_hit,
             None => {
                 return None;
             }
         };
-        // If the hit is not within the quad
         if !self.is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
             return None;
         }
