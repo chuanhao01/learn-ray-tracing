@@ -87,7 +87,7 @@ struct PlanarPlaneHit {
 trait PlanarObject {
     /// Checks if the given alpha and beta values, based on the plane bases and origin
     /// Lie within the planar object
-    fn is_in_planar_object(&self, alpha: f64, beta: f64) -> bool;
+    fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool;
 }
 
 pub enum Hittables {

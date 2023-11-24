@@ -33,7 +33,7 @@ impl Disk {
     }
 }
 impl PlanarObject for Disk {
-    fn is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
+    fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
         (alpha * alpha + beta * beta) <= (self.radius * self.radius)
     }
 }
@@ -50,7 +50,7 @@ impl Hittable<HitRecord> for Disk {
                 return None;
             }
         };
-        if !self.is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
+        if !self.ab_is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
             return None;
         }
 

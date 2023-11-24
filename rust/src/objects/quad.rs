@@ -25,7 +25,7 @@ impl Quad {
     }
 }
 impl PlanarObject for Quad {
-    fn is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
+    fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
         let quad_interval = Interval { min: 0.0, max: 1.0 };
         quad_interval.contains(alpha) && quad_interval.contains(beta)
     }
@@ -44,7 +44,7 @@ impl Hittable<HitRecord> for Quad {
             }
         };
         // If the hit is not within the quad
-        if !self.is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
+        if !self.ab_is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
             return None;
         }
 

@@ -27,7 +27,7 @@ impl Triangle {
     }
 }
 impl PlanarObject for Triangle {
-    fn is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
+    fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
         // If its no within this quad, its not a correct hit already
         let quad_interval = Interval { min: 0.0, max: 1.0 };
         if !(quad_interval.contains(alpha) && quad_interval.contains(beta)) {
@@ -64,7 +64,7 @@ impl Hittable<HitRecord> for Triangle {
                 return None;
             }
         };
-        if !self.is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
+        if !self.ab_is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
             return None;
         }
 
