@@ -44,43 +44,43 @@ fn test_scene() {
     }));
 
     let mut hittable_list = HittablesList::new();
-    hittable_list.add(Hittables::Disk(Disk::new(
+    hittable_list.add(Arc::new(Hittables::Disk(Disk::new(
         Vec3::new_int(-3, -2, 5),
         Vec3::new_int(0, 0, -4),
         Vec3::new_int(0, 4, 0),
         1.0,
         left_red.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(-2, -2, 0),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 4, 0),
         back_green.clone(),
-    )));
-    hittable_list.add(Hittables::Triangle(Triangle::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Triangle(Triangle::new(
         Vec3::new_int(3, -2, 1),
         Vec3::new_int(0, 0, 4),
         Vec3::new_int(0, 4, 0),
         right_blue.clone(),
-    )));
-    hittable_list.add(Hittables::Disk(Disk::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Disk(Disk::new(
         Vec3::new_int(-2, 3, 1),
         Vec3::new(4.0, 0.1, 0.0),
         Vec3::new_int(0, 0, 4),
         1.0,
         upper_orange.clone(),
-    )));
-    hittable_list.add(Hittables::Triangle(Triangle::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Triangle(Triangle::new(
         Vec3::new_int(-2, -3, 5),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 0, -4),
         lower_teal.clone(),
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
         Vec3::new(0.0, 0.0, 2.0),
         1.2,
         material_metal.clone(),
-    )));
+    ))));
     let world = BVH::from_hittable_list(&hittable_list);
 
     let camera_params = CameraParams {

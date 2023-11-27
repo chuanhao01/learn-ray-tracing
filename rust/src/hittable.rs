@@ -58,10 +58,10 @@ impl HittablesList {
     }
 
     /// Adds a new Hittable into the list
-    pub fn add(&mut self, hittable: Hittables) {
+    pub fn add(&mut self, hittable: Arc<Hittables>) {
         // Dont think this is needed anywhere?
         self.bbox = AABB::from_aabb(&self.bbox, hittable.bbox());
-        self.v.push(Arc::new(hittable));
+        self.v.push(hittable);
     }
     /// Method to get the length of Hittables
     pub fn len(&self) -> usize {
@@ -270,14 +270,14 @@ mod test {
     #[test]
     fn test_bvh_from_hittable_list() {
         let mut hittable_list = HittablesList::new();
-        hittable_list.add(Hittables::Sphere(Sphere::new(
+        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, 0),
             1.0,
             Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
-        )));
-        hittable_list.add(Hittables::None);
-        hittable_list.add(Hittables::None);
-        hittable_list.add(Hittables::None);
+        ))));
+        hittable_list.add(Arc::new(Hittables::None));
+        hittable_list.add(Arc::new(Hittables::None));
+        hittable_list.add(Arc::new(Hittables::None));
 
         let bvh = BVH::from_hittable_list(&hittable_list);
         // Bad Rust code, but oh well its for a test
@@ -292,14 +292,14 @@ mod test {
     #[test]
     fn test_bvh_hit() {
         let mut hittable_list = HittablesList::new();
-        hittable_list.add(Hittables::Sphere(Sphere::new(
+        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, -1),
             0.5,
             Arc::new(Materials::ScatterMaterial(ScatterMaterials::Metal(
                 Metal::new(Vec3::new(0.0, 0.0, 1.0), 0.1),
             ))),
-        )));
-        hittable_list.add(Hittables::Sphere(Sphere::new(
+        ))));
+        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, -3),
             1.0,
             Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
@@ -307,8 +307,8 @@ mod test {
                     albedo: Vec3::new(0.0, 1.0, 0.0),
                 },
             ))),
-        )));
-        hittable_list.add(Hittables::Sphere(Sphere::new(
+        ))));
+        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
             Vec3::new_int(0, 0, -5),
             1.0,
             Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
@@ -316,7 +316,7 @@ mod test {
                     albedo: Vec3::new(0.0, 0.0, 1.0),
                 },
             ))),
-        )));
+        ))));
         let bvh = BVH::from_hittable_list(&hittable_list);
 
         let hit = bvh
