@@ -63,6 +63,16 @@ impl HittablesList {
         self.bbox = AABB::from_aabb(&self.bbox, hittable.bbox());
         self.v.push(hittable);
     }
+    /// Appends the hittables to the current list
+    pub fn append(&mut self, hittables: &mut Vec<Arc<Hittables>>) {
+        self.bbox = hittables
+            .iter()
+            .fold(self.bbox, |acc: AABB, hittable: &Arc<Hittables>| {
+                AABB::from_aabb(&acc, hittable.bbox())
+            });
+
+        self.v.append(hittables);
+    }
     /// Method to get the length of Hittables
     pub fn len(&self) -> usize {
         self.v.len()

@@ -39,9 +39,11 @@ fn test_scene() {
         Vec3::new(0.1_f64, 0.2_f64, 0.5_f64),
         0.3_f64,
     )));
-    let material_glass = Arc::new(ScatterMaterials::Dielectric(Dielectric {
-        index_of_reflectance: 1.4,
-    }));
+    let material_glass = Arc::new(Materials::ScatterMaterial(ScatterMaterials::Dielectric(
+        Dielectric {
+            index_of_reflectance: 1.4,
+        },
+    )));
 
     let mut hittable_list = HittablesList::new();
     hittable_list.add(Arc::new(Hittables::Disk(Disk::new(
@@ -61,7 +63,7 @@ fn test_scene() {
         Vec3::new_int(3, -2, 1),
         Vec3::new_int(0, 0, 4),
         Vec3::new_int(0, 4, 0),
-        right_blue.clone(),
+        material_metal.clone(),
     ))));
     hittable_list.add(Arc::new(Hittables::Disk(Disk::new(
         Vec3::new_int(-2, 3, 1),
@@ -79,7 +81,7 @@ fn test_scene() {
     hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
         Vec3::new(0.0, 0.0, 2.0),
         1.2,
-        material_metal.clone(),
+        material_glass.clone(),
     ))));
     let world = BVH::from_hittable_list(&hittable_list);
 
