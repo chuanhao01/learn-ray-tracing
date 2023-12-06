@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Hittables, HittablesList, Lambertain, LightMaterials, Materials, Quad,
-    ScatterMaterials, Vec3, BVH,
+    construct_planar_quad_box, Camera, CameraParams, Hittables, HittablesList, Lambertain,
+    LightMaterials, Materials, Quad, ScatterMaterials, Vec3, BVH,
 };
 
 fn test_scene() {
@@ -26,47 +26,57 @@ fn test_scene() {
     }));
 
     let mut hittable_list = HittablesList::new();
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 555, 0),
         Vec3::new_int(0, 0, 555),
         green.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(0, 0, 0),
         Vec3::new_int(0, 555, 0),
         Vec3::new_int(0, 0, 555),
         red.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(343, 554, 332),
         Vec3::new_int(-130, 0, 0),
         Vec3::new_int(0, 0, -105),
         light.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(0, 0, 0),
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 0, 555),
         white.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(555, 555, 555),
         Vec3::new_int(-555, 0, 0),
         Vec3::new_int(0, 0, -555),
         white.clone(),
-    )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new_int(0, 0, 555),
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 555, 0),
         white.clone(),
-    )));
+    ))));
+    hittable_list.append(&mut construct_planar_quad_box(
+        &Vec3::new_int(130, 0, 65),
+        &Vec3::new_int(295, 165, 230),
+        white.clone(),
+    ));
+    hittable_list.append(&mut construct_planar_quad_box(
+        &Vec3::new_int(265, 0, 295),
+        &Vec3::new_int(430, 330, 460),
+        white.clone(),
+    ));
     let world = BVH::from_hittable_list(&hittable_list);
 
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
-        samples_per_pixel: 1,
+        samples_per_pixel: 100,
         max_depth: 100,
         image_width: 600,
         fov: 40_f64,
