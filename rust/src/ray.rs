@@ -26,6 +26,14 @@ impl Display for Ray {
         )
     }
 }
+impl Clone for Ray {
+    fn clone(&self) -> Self {
+        Ray {
+            origin: self.origin.clone(),
+            direction: self.direction.clone(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod test {

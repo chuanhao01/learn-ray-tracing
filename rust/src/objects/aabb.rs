@@ -36,6 +36,14 @@ impl AABB {
             z: Interval::from_interval(&a.z, &b.z),
         }
     }
+    /// Translate the AABB by the given offset, returns a new [AABB]
+    pub fn translate(&self, offset: Vec3) -> Self {
+        Self {
+            x: self.x.translate(offset.x()),
+            y: self.y.translate(offset.y()),
+            z: self.z.translate(offset.z()),
+        }
+    }
     /// Get a reference to the intervals in the AABB based on index
     // TODO: Find a better way to deal with people using non-sensical indexes other than 0-2
     // Idea was to use an enum, but having to deal with errors is meh

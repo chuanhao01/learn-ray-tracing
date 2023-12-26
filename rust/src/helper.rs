@@ -44,6 +44,13 @@ impl Interval {
             max: f64::max(a.max, b.max),
         }
     }
+    /// Translate the given Interval by a given value, returns a new [Interval]
+    pub fn translate(&self, offset: f64) -> Self {
+        Self {
+            min: self.min + offset,
+            max: self.max + offset,
+        }
+    }
 
     /// returns the size of the interval
     pub fn size(&self) -> f64 {
