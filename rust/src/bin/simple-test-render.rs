@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal, Quad,
-    ScatterMaterials, Sphere, Translation, Vec3, BVH,
+    construct_planar_quad_box, Camera, CameraParams, Dielectric, Hittables, HittablesList,
+    Lambertain, Materials, Metal, Quad, ScatterMaterials, Sphere, Translation, Vec3, BVH,
 };
 
 fn test_scene() {
@@ -70,16 +70,28 @@ fn test_scene() {
     //     Arc::clone(&material_glass),
     // )));
 
-    let center_ball = Arc::new(Hittables::Sphere(Sphere::new(
-        Vec3::new(-0.25, 0.0, -1.0),
-        0.4,
+    // let center_ball = Arc::new(Hittables::Sphere(Sphere::new(
+    //     Vec3::new(-0.25, 0.0, -1.0),
+    //     0.4,
+    //     Arc::new(Materials::ScatterMaterial(material_red)),
+    // )));
+    let center_box = construct_planar_quad_box(
+        &Vec3::new(-0.4, -0.4, -1.0),
+        &Vec3::new(0.4, 0.4, -1.4),
         Arc::new(Materials::ScatterMaterial(material_red)),
-    )));
-    hittable_list.add(center_ball.clone());
-    hittable_list.add(Arc::new(Hittables::Translation(Translation::new(
-        center_ball.clone(),
-        Vec3::new(-1.0, 0.0, 0.0),
-    ))));
+    );
+    hittable_list.append(&mut center_box.clone());
+    hittable_list.append(
+        &mut center_box
+            .iter()
+            .map(|plane| {
+                Arc::new(Hittables::Translation(Translation::new(
+                    plane.clone(),
+                    Vec3::new(-1.0, 0.0, 0.0),
+                )))
+            })
+            .collect::<Vec<_>>(),
+    );
     hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new(0.25, -0.25, -1.5),
         Vec3::new(0.75, 0.0, 0.5),

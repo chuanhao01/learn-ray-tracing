@@ -6,6 +6,7 @@ use crate::{helper::Interval, ray::Ray, HitRecord, Hittable, Vec3};
 mod aabb;
 mod disk;
 mod quad;
+mod rotation;
 mod sphere;
 mod translation;
 mod triangle;
