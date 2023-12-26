@@ -1,36 +1,32 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Metal, Quad,
-    ScatterMaterials, Sphere, Vec3, BVH,
+    Camera, CameraParams, Dielectric, Hittables, HittablesList, Lambertain, Materials, Metal, Quad,
+    ScatterMaterials, Sphere, Translation, Vec3, BVH,
 };
 
 fn test_scene() {
-    let material_ground = Arc::new(ScatterMaterials::Lambertain(Lambertain {
+    let material_ground = ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
-    }));
+    });
 
-    let material_red = Arc::new(ScatterMaterials::Lambertain(Lambertain {
+    let material_red = ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
-    }));
-    let material_green = Arc::new(ScatterMaterials::Lambertain(Lambertain {
+    });
+    let material_green = ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.8_f64, 0.0_f64),
-    }));
-    let material_blue = Arc::new(ScatterMaterials::Lambertain(Lambertain {
+    });
+    let material_blue = ScatterMaterials::Lambertain(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.0_f64, 0.8_f64),
-    }));
+    });
 
-    let material_metal = Arc::new(ScatterMaterials::Metal(Metal::new(
-        Vec3::new(0.1_f64, 0.2_f64, 0.5_f64),
-        0.0_f64,
-    )));
-    let material_metal_fuzzy = Arc::new(ScatterMaterials::Metal(Metal::new(
-        Vec3::new(0.1_f64, 0.2_f64, 0.5_f64),
-        0.3_f64,
-    )));
-    let material_glass = Arc::new(ScatterMaterials::Dielectric(Dielectric {
+    let material_metal =
+        ScatterMaterials::Metal(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.0_f64));
+    let material_metal_fuzzy =
+        ScatterMaterials::Metal(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.3_f64));
+    let material_glass = ScatterMaterials::Dielectric(Dielectric {
         index_of_reflectance: 1.4,
-    }));
+    });
 
     let mut hittable_list = HittablesList::new();
     // hittable_list.add(Hittables::Sphere(Sphere::new(
@@ -74,22 +70,27 @@ fn test_scene() {
     //     Arc::clone(&material_glass),
     // )));
 
-    hittable_list.add(Hittables::Sphere(Sphere::new(
+    let center_ball = Arc::new(Hittables::Sphere(Sphere::new(
         Vec3::new(-0.25, 0.0, -1.0),
         0.4,
-        Arc::clone(&material_red),
+        Arc::new(Materials::ScatterMaterial(material_red)),
     )));
-    hittable_list.add(Hittables::Quad(Quad::new(
+    hittable_list.add(center_ball.clone());
+    hittable_list.add(Arc::new(Hittables::Translation(Translation::new(
+        center_ball.clone(),
+        Vec3::new(-1.0, 0.0, 0.0),
+    ))));
+    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
         Vec3::new(0.25, -0.25, -1.5),
         Vec3::new(0.75, 0.0, 0.5),
         Vec3::new(0.0, 0.75, 0.0),
-        material_metal,
-    )));
-    hittable_list.add(Hittables::Sphere(Sphere::new(
+        Arc::new(Materials::ScatterMaterial(material_metal)),
+    ))));
+    hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
-        material_ground,
-    )));
+        Arc::new(Materials::ScatterMaterial(material_green)),
+    ))));
     let world = BVH::from_hittable_list(&hittable_list);
 
     let camera_params = CameraParams {
@@ -105,9 +106,7 @@ fn test_scene() {
     let camera = Camera::new(camera_params);
 
     eprintln!("{:?}", camera);
-    eprintln!("{}", world);
     camera.render(&world);
-    // eprintln!("len: {}", hittable_list.len());
 }
 
 fn main() {

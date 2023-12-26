@@ -194,7 +194,10 @@ impl Camera {
     /// Takes a ray and simulates ray tracing on it
     /// Refer to [render](Self::render)
     #[allow(clippy::only_used_in_recursion)]
-    fn color_ray<T: Hittable<HitRecord>>(&self, _ray: &Ray, _world: &T, max_depth: i64) -> Vec3 {
+    fn color_ray<T>(&self, _ray: &Ray, _world: &T, max_depth: i64) -> Vec3
+    where
+        T: Hittable<HitRecord>,
+    {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }
