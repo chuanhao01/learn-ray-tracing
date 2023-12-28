@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{Hittable, Interval, Ray, Vec3};
+use crate::{Interval, Ray, Vec3};
 
 /// Axis Aligned Bounding Box
 /// To initialize use `AABB{}` or [from_aabb] or [from_points]
@@ -76,10 +76,9 @@ impl AABB {
             },
         }
     }
-}
-impl Hittable<Interval> for AABB {
+
     /// Quick and cheaper check for if the ray will hit the AABB
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Interval> {
+    pub fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<Interval> {
         let mut modified_t_interval = valid_t_interval;
         for axis in 0..3 {
             let inv_b = 1_f64 / _ray.direction[axis];

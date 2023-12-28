@@ -3,23 +3,17 @@ use std::fmt::Display;
 
 use crate::{helper::Interval, ray::Ray, HitRecord, Hittable};
 
-mod aabb;
 mod planar;
 mod rotation;
 mod simple_constructors;
 mod sphere;
 mod translation;
 
-pub use aabb::AABB;
 pub use planar::{Disk, Quad, Triangle};
 pub use rotation::Rotation;
 pub use simple_constructors::construct_planar_quad_box;
 pub use sphere::Sphere;
 pub use translation::Translation;
-
-pub trait HittableObject: Hittable<HitRecord> {
-    fn bbox(&self) -> &AABB;
-}
 
 pub enum Hittables {
     Sphere(Sphere),
