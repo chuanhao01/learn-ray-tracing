@@ -2,47 +2,41 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
 
-use super::{HittableObject, PlanarBase, PlanarObject};
+use super::super::HittableObject;
+use super::{PlanarBase, PlanarObject};
 
-pub struct Disk {
+pub struct Quad {
     planar_base: PlanarBase,
     pub material: Arc<Materials>,
     bbox: AABB,
-    radius: f64,
 }
 #[allow(non_snake_case)]
-impl Disk {
-    /// Q being the center of the circle
-    /// u being the left pointing vector (in relation to the plane, will be converted to a unit vector)
-    /// v being the up poiting vector (in relation to the plane, will be converted to a unit vector)
-    /// raidus being the radius of the disk (In terms of unit vectors in the u and v vector directions)
-    pub fn new(Q: Vec3, u: Vec3, v: Vec3, radius: f64, material: Arc<Materials>) -> Self {
-        let u = Vec3::unit_vector(&u);
-        let v = Vec3::unit_vector(&v);
-
-        let bottom_left_corner = Q.clone() - radius * u.clone() - radius * v.clone();
-        let top_left_corner = Q.clone() + radius * u.clone() + radius * v.clone();
+impl Quad {
+    /// Q being the bottom left point
+    /// u being the left pointing vector
+    /// v being the up poiting vector
+    pub fn new(Q: Vec3, u: Vec3, v: Vec3, material: Arc<Materials>) -> Self {
         Self {
             planar_base: PlanarBase::new(Q.clone(), u.clone(), v.clone()),
             material,
             // Important Note:
             // bbox requires padding as Some quads can lie on the axis (Size = 0)
-            bbox: AABB::from_points(&bottom_left_corner, &top_left_corner).pad(),
-            radius,
+            bbox: AABB::from_points(&Q.clone(), &(Q.clone() + u.clone() + v.clone())).pad(),
         }
     }
 }
-impl PlanarObject for Disk {
+impl PlanarObject for Quad {
     fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool {
-        (alpha * alpha + beta * beta) <= (self.radius * self.radius)
+        let quad_interval = Interval { min: 0.0, max: 1.0 };
+        quad_interval.contains(alpha) && quad_interval.contains(beta)
     }
 }
-impl HittableObject for Disk {
+impl HittableObject for Quad {
     fn bbox(&self) -> &AABB {
         &self.bbox
     }
 }
-impl Hittable<HitRecord> for Disk {
+impl Hittable<HitRecord> for Quad {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let plane_hit = match self.planar_base.hit_plane(_ray, valid_t_interval) {
             Some(plane_hit) => plane_hit,
@@ -50,6 +44,7 @@ impl Hittable<HitRecord> for Disk {
                 return None;
             }
         };
+        // If the hit is not within the quad
         if !self.ab_is_in_planar_object(plane_hit.alpha, plane_hit.beta) {
             return None;
         }
@@ -62,13 +57,8 @@ impl Hittable<HitRecord> for Disk {
         ))
     }
 }
-
-impl Display for Disk {
+impl Display for Quad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Disk(planar_base: {}, raidus: {})",
-            self.planar_base, self.radius
-        )
+        write!(f, "Quad(planar_base: {})", self.planar_base)
     }
 }

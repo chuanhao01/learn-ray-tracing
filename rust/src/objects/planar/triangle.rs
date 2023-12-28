@@ -2,7 +2,8 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
 
-use super::{HittableObject, PlanarBase, PlanarObject};
+use super::super::HittableObject;
+use super::{PlanarBase, PlanarObject};
 
 // Allow snake case for understanding the object reason
 #[allow(non_snake_case)]
