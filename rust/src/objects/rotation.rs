@@ -1,11 +1,9 @@
 use std::{f64::INFINITY, fmt::Display, sync::Arc};
 
-use super::{HittableObject, Hittables, Transformation};
-use crate::{
-    helper::from_fdegree_to_fradian, HitRecord, Hittable, Interval, Ray, Vec3, Vec3Axis, AABB,
-};
+use super::{HittableObject, Hittables};
+use crate::{HitRecord, Hittable, Interval, Ray, Vec3, Vec3Axis, AABB};
 
-struct Rotation {
+pub struct Rotation {
     instance: Arc<Hittables>,
     rotation_axis: Vec3Axis,
     /// Angle of Rotation around the rotation_axis Degress(360)
@@ -14,7 +12,7 @@ struct Rotation {
 }
 impl Rotation {
     /// Creates a new Rotation Hittables Object, given an axis and degrees (360) of rotation
-    fn new(instance: Arc<Hittables>, rotation_axis: Vec3Axis, deg_angle: f64) -> Self {
+    pub fn new(instance: Arc<Hittables>, rotation_axis: Vec3Axis, deg_angle: f64) -> Self {
         let aabb = instance.bbox();
         let mut bottom_left_min_aabb_point = Vec3::new(INFINITY, INFINITY, INFINITY);
         let mut top_right_max_aabb_point = Vec3::new(-INFINITY, -INFINITY, -INFINITY);
@@ -42,16 +40,31 @@ impl Rotation {
 }
 impl Hittable<HitRecord> for Rotation {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
-        let new_ray = Ray{
-
+        let object_space_ray = Ray {
+            origin: _ray
+                .origin
+                .rotate_about_axis(&self.rotation_axis, -self.deg_angle),
+            direction: _ray
+                .direction
+                .rotate_about_axis(&self.rotation_axis, -self.deg_angle),
+        };
+        match self.instance.hit(&object_space_ray, valid_t_interval) {
+            Some(mut hit_record) => {
+                hit_record.p = hit_record
+                    .p
+                    .rotate_about_axis(&self.rotation_axis, self.deg_angle);
+                hit_record.against_normal_unit = hit_record
+                    .against_normal_unit
+                    .rotate_about_axis(&self.rotation_axis, self.deg_angle);
+                Some(hit_record)
+            }
+            None => None,
         }
-        let new_origin = _ray
-            .origin
-            .rotate_about_axis(&self.rotation_axis, -self.deg_angle);
-        let new_direction = _ray
-            .direction
-            .rotate_about_axis(&self.rotation_axis, -self.deg_angle);
-        None
+    }
+}
+impl HittableObject for Rotation {
+    fn bbox(&self) -> &AABB {
+        &self.bbox
     }
 }
 

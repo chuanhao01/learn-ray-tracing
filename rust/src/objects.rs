@@ -8,8 +8,6 @@ mod disk;
 mod quad;
 mod rotation;
 mod sphere;
-mod transform;
-mod transformations;
 mod translation;
 mod triangle;
 
@@ -17,6 +15,7 @@ pub use aabb::AABB;
 pub use disk::Disk;
 pub use object_construction_helper::construct_planar_quad_box;
 pub use quad::Quad;
+pub use rotation::Rotation;
 pub use sphere::Sphere;
 pub use translation::Translation;
 pub use triangle::Triangle;
@@ -165,20 +164,13 @@ trait PlanarObject {
     fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool;
 }
 
-pub trait Transformation {
-    fn convert_world_space_to_object_space(&self, v: Vec3) -> Vec3;
-    fn convert_object_space_to_word_space(&self, v: Vec3) -> Vec3;
-
-    /// Based on the transformation, should give the new AABB to check against
-    fn get_converted_aabb(&self, aabb: AABB) -> AABB;
-}
-
 pub enum Hittables {
     Sphere(Sphere),
     Quad(Quad),
     Triangle(Triangle),
     Disk(Disk),
     Translation(Translation),
+    Rotation(Rotation),
     None,
 }
 impl Hittables {
@@ -190,6 +182,7 @@ impl Hittables {
             Hittables::Triangle(triangle) => triangle.bbox(),
             Hittables::Disk(disk) => disk.bbox(),
             Hittables::Translation(translation) => translation.bbox(),
+            Hittables::Rotation(rotation) => rotation.bbox(),
             Hittables::None => &AABB {
                 x: Interval {
                     min: 0_f64,
@@ -215,6 +208,7 @@ impl Hittable<HitRecord> for Hittables {
             Hittables::Triangle(triangle) => triangle.hit(_ray, valid_t_interval),
             Hittables::Disk(disk) => disk.hit(_ray, valid_t_interval),
             Hittables::Translation(translation) => translation.hit(_ray, valid_t_interval),
+            Hittables::Rotation(rotation) => rotation.hit(_ray, valid_t_interval),
             Hittables::None => None,
         }
     }
@@ -227,6 +221,7 @@ impl Display for Hittables {
             Hittables::Triangle(triangle) => triangle.to_string(),
             Hittables::Disk(disk) => disk.to_string(),
             Hittables::Translation(translation) => translation.to_string(),
+            Hittables::Rotation(rotation) => rotation.to_string(),
             Hittables::None => "Nothing".to_owned(),
         };
         write!(f, "{}", obj)

@@ -13,7 +13,7 @@ pub use materials::{
     Dielectric, Lambertain, LightMaterials, Materials, Metal, ScatterMaterials, Scattered,
 };
 pub use objects::{
-    construct_planar_quad_box, Disk, Hittables, Quad, Sphere, Translation, Triangle, AABB,
+    construct_planar_quad_box, Disk, Hittables, Quad, Rotation, Sphere, Translation, Triangle, AABB,
 };
 pub use ray::Ray;
 pub use vec3::{Vec3, Vec3Axis};
