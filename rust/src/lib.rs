@@ -16,4 +16,4 @@ pub use objects::{
     construct_planar_quad_box, Disk, Hittables, Quad, Sphere, Translation, Triangle, AABB,
 };
 pub use ray::Ray;
-pub use vec3::Vec3;
+pub use vec3::{Vec3, Vec3Axis};

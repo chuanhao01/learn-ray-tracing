@@ -8,6 +8,8 @@ mod disk;
 mod quad;
 mod rotation;
 mod sphere;
+mod transform;
+mod transformations;
 mod translation;
 mod triangle;
 
@@ -161,6 +163,14 @@ trait PlanarObject {
     /// Checks if the given alpha and beta values, based on the plane bases and origin
     /// Lie within the planar object
     fn ab_is_in_planar_object(&self, alpha: f64, beta: f64) -> bool;
+}
+
+pub trait Transformation {
+    fn convert_world_space_to_object_space(&self, v: Vec3) -> Vec3;
+    fn convert_object_space_to_word_space(&self, v: Vec3) -> Vec3;
+
+    /// Based on the transformation, should give the new AABB to check against
+    fn get_converted_aabb(&self, aabb: AABB) -> AABB;
 }
 
 pub enum Hittables {
