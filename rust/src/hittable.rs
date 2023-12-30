@@ -46,7 +46,9 @@ pub trait Hittable: Sync + Send {
 }
 
 /// A Hittable List (extended with a [bvh::aabb::AABB] BBox)
-/// Think of as a wrapper for a larger object composed of object primitives (Could also just use a BVH or as an item of Vec<Arc<dyn Hittable>>)
+/// Think of as a wrapper for a larger object composed of object primitives (Could also just use a BVH)
+///
+/// The reason why we cannot use a Vec<Arc<dyn HittableWithBBox>> is because we would need to implement HittableWithBBox on it (which is what this struct does)
 #[derive(Default)]
 pub struct HittablesList {
     pub v: Vec<Arc<dyn HittableWithBBox>>,
@@ -104,6 +106,11 @@ impl Hittable for HittablesList {
                 }
             });
         result
+    }
+}
+impl HittableWithBBox for HittablesList {
+    fn bbox(&self) -> &AABB {
+        &self.bbox
     }
 }
 

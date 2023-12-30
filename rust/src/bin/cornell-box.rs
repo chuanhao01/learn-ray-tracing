@@ -67,6 +67,7 @@ fn test_scene() {
         &Vec3::new_int(165, 330, 165),
         white.clone(),
     );
+    // let box1 = BVH::from_hittables_list(box1);
     let box1 = Rotation::new(Arc::new(box1), Vec3Axis::Y, 15.0);
     let box1 = Translation::new(Arc::new(box1), Vec3::new_int(265, 0, 295));
     hittable_list.add(Arc::new(box1));
@@ -75,6 +76,7 @@ fn test_scene() {
         &Vec3::new_int(165, 165, 165),
         white.clone(),
     );
+    // let box2 = BVH::from_hittables_list(box2);
     let box2 = Rotation::new(Arc::new(box2), Vec3Axis::Y, -18.0);
     let box2 = Translation::new(Arc::new(box2), Vec3::new_int(130, 0, 65));
     hittable_list.add(Arc::new(box2));
@@ -82,8 +84,8 @@ fn test_scene() {
 
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
-        samples_per_pixel: 50,
-        max_depth: 50,
+        samples_per_pixel: 200,
+        max_depth: 100,
         image_width: 600,
         fov: 40_f64,
         focus_angle: 0_f64,

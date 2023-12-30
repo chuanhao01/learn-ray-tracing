@@ -28,7 +28,7 @@ pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
 /// Simple structure for representing Intervals
 ///
 /// There is a way to do it in rust with std::ops::Range,
-/// but I don't know and truct myself to use it properly
+/// but I don't know and trust myself to use it properly
 #[derive(Default, Clone, Copy)]
 pub struct Interval {
     /// Left bound

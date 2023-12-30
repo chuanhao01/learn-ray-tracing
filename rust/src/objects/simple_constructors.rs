@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use crate::{HittableWithBBox, Materials, Quad, Vec3, BVH};
+use crate::{HittableWithBBox, HittablesList, Materials, Quad, Vec3};
 
 /// a and b are the bottom and top point of the box
 /// Material will be the material of all the quads of the sides of the box
 /// The points a and b will then be converted into the bottom left and top right points of the box
-pub fn construct_planar_quad_box(a: &Vec3, b: &Vec3, material: Arc<Materials>) -> BVH {
+pub fn construct_planar_quad_box(a: &Vec3, b: &Vec3, material: Arc<Materials>) -> HittablesList {
     // Since the BVH takes in a Vec<Arc> of Hittables
     let mut box_quads: Vec<Arc<dyn HittableWithBBox>> = Vec::new();
     let bottom_left_point = Vec3::new(
@@ -59,5 +59,7 @@ pub fn construct_planar_quad_box(a: &Vec3, b: &Vec3, material: Arc<Materials>) -
         -dz.clone(),
         material.clone(),
     ))); // Back face
-    BVH::from_hittables_list(box_quads)
+    let mut box_quads_list = HittablesList::new();
+    box_quads_list.append(&mut box_quads);
+    box_quads_list
 }
