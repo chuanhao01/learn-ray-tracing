@@ -6,7 +6,7 @@ use rand::prelude::thread_rng;
 use rand::Rng;
 
 use crate::materials::{Emittable, Scatterable};
-use crate::{HitRecord, Hittable, Interval, Materials};
+use crate::{Hittable, Interval, Materials};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -148,12 +148,12 @@ impl Camera {
 
     /// Renders the World with the given camera params.
     /// Ideally, the render function should only be called.
-    /// Takes in Any world which implements `Hittable<HitRecord>`
+    /// Takes in Any world which implements [Hittable]
     ///
     // Implementation Details:
     // Used a generic type as it will only generate the static dispatch given the actual type that implements `Hittable` is used with this function
     // This way, we can use any `Hittable` world, and have no draw backs (Unless we call this function with 2 different `Hittable` types, then the generated function will be duplicated for the types)
-    pub fn render<T: Hittable<HitRecord> + Sync + Send>(&self, world: &T) {
+    pub fn render<T: Hittable + Sync + Send>(&self, world: &T) {
         println!("P3");
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
@@ -194,10 +194,7 @@ impl Camera {
     /// Takes a ray and simulates ray tracing on it
     /// Refer to [render](Self::render)
     #[allow(clippy::only_used_in_recursion)]
-    fn color_ray<T>(&self, _ray: &Ray, _world: &T, max_depth: i64) -> Vec3
-    where
-        T: Hittable<HitRecord>,
-    {
+    fn color_ray<T: Hittable>(&self, _ray: &Ray, _world: &T, max_depth: i64) -> Vec3 {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }

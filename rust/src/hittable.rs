@@ -1,11 +1,9 @@
-use std::{cmp::Ordering, fmt::Display, sync::Arc};
+use std::sync::Arc;
 
-use rand::{thread_rng, Rng};
-
-use crate::{ray::Ray, Hittables, Interval, Materials, Vec3};
+use crate::{ray::Ray, Interval, Materials, Vec3};
 
 mod bvh;
-use bvh::{HittableWithBBox, AABB};
+pub use bvh::{HittableWithBBox, AABB, BVH};
 
 pub struct HitRecord {
     /// Point at which the hit occurs
@@ -41,15 +39,11 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+    #[allow(unused_variables)]
+    fn hit(&self, ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         None
     }
 }
-// impl Default for Arc<dyn Hittable> {
-//     fn default() -> Self {
-//         Self::default()
-//     }
-// }
 
 /// A Hittable List (extended with a [bvh::aabb::AABB] BBox)
 /// The AABB BBox is the extended part
@@ -114,121 +108,45 @@ impl Hittable for HittablesList {
     }
 }
 
-// impl Hittable<HitRecord> for Vec<Hittables> {
-//     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
-//         // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit
-//         let (_, result) = self
-//             .iter()
-//             .fold((valid_t_interval.max, None), |acc, hittable| {
-//                 if let Some(hit_record) = hittable.hit(
-//                     _ray,
-//                     Interval {
-//                         min: valid_t_interval.min,
-//                         max: acc.0,
-//                     },
-//                 ) {
-//                     (hit_record.t, Some(hit_record))
-//                 } else {
-//                     acc
-//                 }
-//             });
-//         result
-//     }
-// }
-// impl Hittable<HitRecord> for Vec<Arc<Hittables>> {
-//     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
-//         // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit
-//         let (_, result) = self
-//             .iter()
-//             .fold((valid_t_interval.max, None), |acc, hittable| {
-//                 if let Some(hit_record) = hittable.hit(
-//                     _ray,
-//                     Interval {
-//                         min: valid_t_interval.min,
-//                         max: acc.0,
-//                     },
-//                 ) {
-//                     (hit_record.t, Some(hit_record))
-//                 } else {
-//                     acc
-//                 }
-//             });
-//         result
-//     }
-// }
-
-#[cfg(test)]
-mod test {
-    use std::f64::INFINITY;
-
-    use crate::{Lambertain, Metal, ScatterMaterials, Sphere};
-
-    use super::*;
-
-    #[test]
-    fn test_bvh_from_hittable_list() {
-        let mut hittable_list = HittablesList::new();
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, 0),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
-        ))));
-        hittable_list.add(Arc::new(Hittables::None));
-        hittable_list.add(Arc::new(Hittables::None));
-        hittable_list.add(Arc::new(Hittables::None));
-
-        let bvh = BVH::from_hittable_list(&hittable_list);
-        // Bad Rust code, but oh well its for a test
-        if let Hittables::Sphere(ref sphere) = *bvh.left.unwrap().left.unwrap().hittable.unwrap() {
-            assert_eq!(sphere.radius, 1.0);
-            assert!(matches!(
-                *sphere.material,
-                Materials::ScatterMaterial(ScatterMaterials::None)
-            ))
-        }
+impl Hittable for Vec<Box<dyn Hittable>> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+        // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit
+        let (_, result) = self
+            .iter()
+            .fold((valid_t_interval.max, None), |acc, hittable| {
+                if let Some(hit_record) = hittable.hit(
+                    _ray,
+                    Interval {
+                        min: valid_t_interval.min,
+                        max: acc.0,
+                    },
+                ) {
+                    (hit_record.t, Some(hit_record))
+                } else {
+                    acc
+                }
+            });
+        result
     }
-    #[test]
-    fn test_bvh_hit() {
-        let mut hittable_list = HittablesList::new();
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -1),
-            0.5,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Metal(
-                Metal::new(Vec3::new(0.0, 0.0, 1.0), 0.1),
-            ))),
-        ))));
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -3),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-                Lambertain {
-                    albedo: Vec3::new(0.0, 1.0, 0.0),
-                },
-            ))),
-        ))));
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -5),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-                Lambertain {
-                    albedo: Vec3::new(0.0, 0.0, 1.0),
-                },
-            ))),
-        ))));
-        let bvh = BVH::from_hittable_list(&hittable_list);
-
-        let hit = bvh
-            .hit(
-                &Ray {
-                    origin: Vec3::new_int(0, 0, 0),
-                    direction: Vec3::new(0.0, 0.0, -1.0),
-                },
-                Interval {
-                    min: 0.001,
-                    max: INFINITY,
-                },
-            )
-            .unwrap();
-        assert_eq!(hit.t, 0.5);
+}
+impl Hittable for Vec<Arc<dyn Hittable>> {
+    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+        // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit
+        let (_, result) = self
+            .iter()
+            .fold((valid_t_interval.max, None), |acc, hittable| {
+                if let Some(hit_record) = hittable.hit(
+                    _ray,
+                    Interval {
+                        min: valid_t_interval.min,
+                        max: acc.0,
+                    },
+                ) {
+                    (hit_record.t, Some(hit_record))
+                } else {
+                    acc
+                }
+            });
+        result
     }
 }

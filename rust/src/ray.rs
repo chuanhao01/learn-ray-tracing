@@ -5,6 +5,7 @@ use super::Vec3;
 /// Represent a Ray in the equation: R = O + tD
 /// With O = Origin and D = Direction
 /// To get the point at float t, use [Ray::at]
+#[derive(Default)]
 pub struct Ray {
     /// Point of Origin for the Ray
     pub origin: Vec3,

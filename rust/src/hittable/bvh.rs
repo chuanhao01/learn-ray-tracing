@@ -1,13 +1,12 @@
-use std::{cmp::Ordering, fmt::Display, sync::Arc};
+use rand::{thread_rng, Rng};
+use std::{cmp::Ordering, sync::Arc};
 
 use crate::{Interval, Ray};
 
-use super::{HitRecord, Hittable, HittablesList};
+use super::{HitRecord, Hittable};
 
 mod aabb;
-
 pub use aabb::AABB;
-use rand::thread_rng;
 
 pub trait HittableWithBBox: Hittable {
     fn bbox(&self) -> &AABB;
@@ -21,8 +20,8 @@ pub struct BVH {
     hittable: Option<Arc<dyn HittableWithBBox>>,
 }
 impl BVH {
-    pub fn from_hittables_list(hittable_list: &HittablesList) -> Self {
-        Self::new(&hittable_list.v[..], 0, hittable_list.len())
+    pub fn from_hittables_list(hittable_list: Vec<Arc<dyn HittableWithBBox>>) -> Self {
+        Self::new(&hittable_list[..], 0, hittable_list.len())
     }
     #[allow(clippy::clone_on_copy)]
     fn new(hittables: &[Arc<dyn HittableWithBBox>], start: usize, end: usize) -> Self {
@@ -94,27 +93,12 @@ impl BVH {
             }
         }
     }
-    /// Does a pre order traversal of the BVH, taking the to_string of each per line
-    fn pre_order_debug(root: &Self) -> String {
-        let mut s = String::new();
-        let mut ss = root.bbox.to_string();
-        if let Some(hittable) = &root.hittable {
-            ss.push(' ');
-            ss.push_str(&hittable.to_string());
-        }
-        s.push_str(&ss);
-        s.push('\n');
-        if let Some(left) = &root.left {
-            s.push_str(&Self::pre_order_debug(left))
-        }
-        if let Some(right) = &root.right {
-            s.push_str(&Self::pre_order_debug(right))
-        }
-        s
-    }
 }
 impl Hittable for BVH {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+        // Check if we don't hit the bbox of the BVH (Nicer rust code)
+        self.bbox.hit(_ray, valid_t_interval)?;
+
         // Deal with base case of edge leaf nodes (Just the hittables)
         // Exit early to prevent computation
         if let (None, None) = (&self.left, &self.right) {
@@ -122,12 +106,9 @@ impl Hittable for BVH {
                 Some(hittable) => return hittable.hit(_ray, valid_t_interval),
                 // Used to be an error, now a default for no ndoes in the BVH
                 // So it should hit nothing
-                None => None,
+                None => return None,
             };
         }
-
-        // Check if we don't hit the bbox of the BVH (Nicer rust code)
-        self.bbox.hit(_ray, valid_t_interval)?;
 
         match (&self.left, &self.right) {
             // BVH nodes which are not edges
@@ -152,85 +133,169 @@ impl Hittable for BVH {
         }
     }
 }
-impl Display for BVH {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = BVH::pre_order_debug(self);
-        write!(f, "{}", s)
-    }
-}
 
 #[cfg(test)]
 mod test {
-    use std::f64::INFINITY;
-
-    use crate::{Lambertain, Metal, ScatterMaterials, Sphere};
+    use crate::{Materials, ScatterMaterials, Vec3};
 
     use super::*;
 
-    #[test]
-    fn test_bvh_from_hittable_list() {
-        let mut hittable_list = HittablesList::new();
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, 0),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
-        ))));
-        hittable_list.add(Arc::new(Hittables::None));
-        hittable_list.add(Arc::new(Hittables::None));
-        hittable_list.add(Arc::new(Hittables::None));
-
-        let bvh = BVH::from_hittable_list(&hittable_list);
-        // Bad Rust code, but oh well its for a test
-        if let Hittables::Sphere(ref sphere) = *bvh.left.unwrap().left.unwrap().hittable.unwrap() {
-            assert_eq!(sphere.radius, 1.0);
-            assert!(matches!(
-                *sphere.material,
-                Materials::ScatterMaterial(ScatterMaterials::None)
-            ))
+    #[derive(Clone)]
+    struct TestHittable {
+        v: Vec3,
+        bbox: AABB,
+    }
+    impl Hittable for TestHittable {
+        fn hit(&self, _ray: &Ray, _valid_t_interval: Interval) -> Option<HitRecord> {
+            if _ray.direction == self.v {
+                Some(HitRecord {
+                    p: self.v.clone(),
+                    t: 1.0,
+                    material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                    against_normal_unit: -self.v.clone(),
+                    front_face: false,
+                })
+            } else {
+                None
+            }
         }
     }
-    #[test]
-    fn test_bvh_hit() {
-        let mut hittable_list = HittablesList::new();
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -1),
-            0.5,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Metal(
-                Metal::new(Vec3::new(0.0, 0.0, 1.0), 0.1),
-            ))),
-        ))));
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -3),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-                Lambertain {
-                    albedo: Vec3::new(0.0, 1.0, 0.0),
-                },
-            ))),
-        ))));
-        hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
-            Vec3::new_int(0, 0, -5),
-            1.0,
-            Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-                Lambertain {
-                    albedo: Vec3::new(0.0, 0.0, 1.0),
-                },
-            ))),
-        ))));
-        let bvh = BVH::from_hittable_list(&hittable_list);
+    impl HittableWithBBox for TestHittable {
+        fn bbox(&self) -> &AABB {
+            &self.bbox
+        }
+    }
 
-        let hit = bvh
-            .hit(
+    #[test]
+    fn test_bvh_hits_correct_test_hittable() {
+        // Idea behind this feature
+        // For the BVH, based on our test implementation,
+        // It should hit the correct Hittable and return the HitRecord we implemented
+        // This should happen regardless of which item it is in the list given or in the BVH
+        fn check_bvh_hit_result(
+            input_hittables: Vec<Arc<dyn HittableWithBBox>>,
+            ouptut_hit_record: HitRecord,
+        ) {
+            let bvh = BVH::from_hittables_list(input_hittables);
+            let hit_result = bvh.hit(
                 &Ray {
-                    origin: Vec3::new_int(0, 0, 0),
-                    direction: Vec3::new(0.0, 0.0, -1.0),
+                    origin: Vec3::new(0.0, 0.0, 0.0),
+                    direction: Vec3::new(0.5, 0.5, 0.5),
                 },
                 Interval {
-                    min: 0.001,
-                    max: INFINITY,
+                    min: 0.0,
+                    max: 10.0,
                 },
-            )
-            .unwrap();
-        assert_eq!(hit.t, 0.5);
+            );
+            assert!(hit_result.is_some());
+            let hit_result = hit_result.unwrap();
+            assert_eq!(hit_result.t, ouptut_hit_record.t);
+            assert_eq!(hit_result.p, ouptut_hit_record.p);
+            assert_eq!(
+                hit_result.against_normal_unit,
+                ouptut_hit_record.against_normal_unit
+            );
+            assert_eq!(hit_result.front_face, ouptut_hit_record.front_face);
+            assert!(matches!(
+                *hit_result.material,
+                Materials::ScatterMaterial(ScatterMaterials::None)
+            ));
+        }
+
+        let hit_test_hittable = Arc::new(TestHittable {
+            v: Vec3::new(0.5, 0.5, 0.5),
+            bbox: AABB::from_points(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0)),
+        });
+        let missed_test_hittable = Arc::new(TestHittable {
+            v: Vec3::new(0.5, 0.5, 0.5),
+            bbox: AABB::from_points(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(-2.0, -2.0, -2.0)),
+        });
+
+        check_bvh_hit_result(
+            vec![
+                hit_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+            ],
+            HitRecord {
+                p: Vec3::new(0.5, 0.5, 0.5),
+                t: 1.0,
+                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
+                front_face: false,
+            },
+        );
+        check_bvh_hit_result(
+            vec![
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                hit_test_hittable.clone(),
+            ],
+            HitRecord {
+                p: Vec3::new(0.5, 0.5, 0.5),
+                t: 1.0,
+                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
+                front_face: false,
+            },
+        );
+        check_bvh_hit_result(
+            vec![
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                hit_test_hittable.clone(),
+                missed_test_hittable.clone(),
+                missed_test_hittable.clone(),
+            ],
+            HitRecord {
+                p: Vec3::new(0.5, 0.5, 0.5),
+                t: 1.0,
+                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
+                front_face: false,
+            },
+        );
+    }
+
+    #[test]
+    fn test_bvh_hits_misses_test_hittable() {
+        // Idea behind this feature
+        // For the BVH, based on our test implementation,
+        // It should miss all the hittables correctly, based on AABB
+
+        let missed_test_hittable = Arc::new(TestHittable {
+            v: Vec3::new(0.5, 0.5, 0.5),
+            bbox: AABB::from_points(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(-2.0, -2.0, -2.0)),
+        });
+
+        fn check_bvh_misses(input_hittables: Vec<Arc<dyn HittableWithBBox>>) {
+            let bvh = BVH::from_hittables_list(input_hittables);
+            let hit_result = bvh.hit(
+                &Ray {
+                    origin: Vec3::new(0.0, 0.0, 0.0),
+                    direction: Vec3::new(0.5, 0.5, 0.5),
+                },
+                Interval {
+                    min: 0.0,
+                    max: 10.0,
+                },
+            );
+            assert!(hit_result.is_none());
+        }
+        check_bvh_misses(Vec::new());
+        check_bvh_misses(vec![missed_test_hittable.clone()]);
+        check_bvh_misses(vec![
+            missed_test_hittable.clone(),
+            missed_test_hittable.clone(),
+        ]);
+        check_bvh_misses(vec![
+            missed_test_hittable.clone(),
+            missed_test_hittable.clone(),
+            missed_test_hittable.clone(),
+        ]);
     }
 }

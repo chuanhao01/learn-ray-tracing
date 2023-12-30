@@ -168,6 +168,11 @@ impl Vec3 {
 }
 
 // Vec3 Traits
+impl Default for Vec3 {
+    fn default() -> Self {
+        Self { e: [0.0, 0.0, 0.0] }
+    }
+}
 impl Clone for Vec3 {
     fn clone(&self) -> Self {
         Vec3 { e: self.e }

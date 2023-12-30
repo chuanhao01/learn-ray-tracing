@@ -12,7 +12,7 @@ pub struct AABB {
 }
 impl AABB {
     /// Create the AABB given 2 points, with each axis covering from p1 to p2
-    pub fn from_points(p1: &Vec3, p2: &Vec3) -> AABB {
+    pub fn from_points(p1: Vec3, p2: Vec3) -> AABB {
         AABB {
             x: Interval {
                 min: f64::min(p1.x(), p2.x()),
@@ -131,7 +131,7 @@ mod test {
 
     #[test]
     fn test_aabb_hit() {
-        let aabb = AABB::from_points(&Vec3::new_int(1, 1, 1), &Vec3::new_int(3, 3, 3));
+        let aabb = AABB::from_points(Vec3::new_int(1, 1, 1), Vec3::new_int(3, 3, 3));
         let hit = aabb.hit(
             &Ray {
                 origin: Vec3::new_int(0, 0, 0),
