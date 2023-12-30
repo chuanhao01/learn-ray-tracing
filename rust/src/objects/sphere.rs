@@ -1,8 +1,6 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
-
-use super::HittableObject;
+use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
 /// Simple Sphere object
 /// To initialize use [Sphere::new]
@@ -16,8 +14,8 @@ impl Sphere {
     pub fn new(center: Vec3, radius: f64, material: Arc<Materials>) -> Self {
         let radius_v = Vec3::new(radius, radius, radius);
         let bbox = AABB::from_points(
-            &(center.clone() - radius_v.clone()),
-            &(center.clone() + radius_v.clone()),
+            center.clone() - radius_v.clone(),
+            center.clone() + radius_v.clone(),
         );
         Self {
             center,
@@ -27,17 +25,12 @@ impl Sphere {
         }
     }
 }
-impl HittableObject for Sphere {
-    fn bbox(&self) -> &AABB {
-        &self.bbox
-    }
-}
-impl Hittable<HitRecord> for Sphere {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
-        let a_minus_c = _ray.origin.clone() - self.center.clone();
+impl Hittable for Sphere {
+    fn hit(&self, ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
+        let a_minus_c = ray.origin.clone() - self.center.clone();
 
-        let a = _ray.direction.length_squared();
-        let b = Vec3::dot(&a_minus_c, &_ray.direction);
+        let a = ray.direction.length_squared();
+        let b = Vec3::dot(&a_minus_c, &ray.direction);
         let c = a_minus_c.length_squared() - self.radius * self.radius;
 
         // Ray does not hit the sphere
@@ -58,13 +51,18 @@ impl Hittable<HitRecord> for Sphere {
             return None;
         }
         // let outward_normal_unit = (_ray.at(root) - self.center.clone()).unit_vector();
-        let outward_normal_unit = (_ray.at(root) - self.center.clone()) / self.radius;
+        let outward_normal_unit = (ray.at(root) - self.center.clone()) / self.radius;
         Some(HitRecord::new(
-            _ray,
+            ray,
             &outward_normal_unit,
             root,
             Arc::clone(&self.material),
         ))
+    }
+}
+impl HittableWithBBox for Sphere {
+    fn bbox(&self) -> &AABB {
+        &self.bbox
     }
 }
 impl Display for Sphere {

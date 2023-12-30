@@ -38,7 +38,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Sync + Send {
     #[allow(unused_variables)]
     fn hit(&self, ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         None
@@ -46,8 +46,7 @@ pub trait Hittable {
 }
 
 /// A Hittable List (extended with a [bvh::aabb::AABB] BBox)
-/// The AABB BBox is the extended part
-/// Do create the object with a default and use the [HittableList::add] method to add Hittables to the list
+/// Think of as a wrapper for a larger object composed of object primitives (Could also just use a BVH or as an item of Vec<Arc<dyn Hittable>>)
 #[derive(Default)]
 pub struct HittablesList {
     pub v: Vec<Arc<dyn HittableWithBBox>>,
@@ -108,27 +107,6 @@ impl Hittable for HittablesList {
     }
 }
 
-impl Hittable for Vec<Box<dyn Hittable>> {
-    fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
-        // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit
-        let (_, result) = self
-            .iter()
-            .fold((valid_t_interval.max, None), |acc, hittable| {
-                if let Some(hit_record) = hittable.hit(
-                    _ray,
-                    Interval {
-                        min: valid_t_interval.min,
-                        max: acc.0,
-                    },
-                ) {
-                    (hit_record.t, Some(hit_record))
-                } else {
-                    acc
-                }
-            });
-        result
-    }
-}
 impl Hittable for Vec<Arc<dyn Hittable>> {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         // For each hittable in the vec, iter through the hittables and run hit, accumulate the hits and return the nearest hit

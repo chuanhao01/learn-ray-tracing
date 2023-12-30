@@ -8,12 +8,10 @@ pub mod vec3;
 
 pub use camera::{Camera, CameraParams};
 pub use helper::Interval;
-pub use hittable::{HitRecord, Hittable, HittablesList, BVH};
+pub use hittable::{HitRecord, Hittable, HittableWithBBox, HittablesList, AABB, BVH};
 pub use materials::{
     Dielectric, Lambertain, LightMaterials, Materials, Metal, ScatterMaterials, Scattered,
 };
-// pub use objects::{
-//     construct_planar_quad_box, Disk, Hittables, Quad, Rotation, Sphere, Translation, Triangle,
-// };
+pub use objects::{construct_planar_quad_box, Disk, Quad, Rotation, Sphere, Translation, Triangle};
 pub use ray::Ray;
 pub use vec3::{Vec3, Vec3Axis};

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    construct_planar_quad_box, Camera, CameraParams, Hittables, HittablesList, Lambertain,
-    LightMaterials, Materials, Quad, Rotation, ScatterMaterials, Translation, Vec3, Vec3Axis, BVH,
+    construct_planar_quad_box, Camera, CameraParams, HittablesList, Lambertain, LightMaterials,
+    Materials, Quad, Rotation, ScatterMaterials, Translation, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
@@ -26,90 +26,64 @@ fn test_scene() {
     }));
 
     let mut hittable_list = HittablesList::new();
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 555, 0),
         Vec3::new_int(0, 0, 555),
         green.clone(),
-    ))));
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    )));
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(0, 0, 0),
         Vec3::new_int(0, 555, 0),
         Vec3::new_int(0, 0, 555),
         red.clone(),
-    ))));
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    )));
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(343, 554, 332),
         Vec3::new_int(-130, 0, 0),
         Vec3::new_int(0, 0, -105),
         light.clone(),
-    ))));
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    )));
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(0, 0, 0),
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 0, 555),
         white.clone(),
-    ))));
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    )));
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(555, 555, 555),
         Vec3::new_int(-555, 0, 0),
         Vec3::new_int(0, 0, -555),
         white.clone(),
-    ))));
-    hittable_list.add(Arc::new(Hittables::Quad(Quad::new(
+    )));
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(0, 0, 555),
         Vec3::new_int(555, 0, 0),
         Vec3::new_int(0, 555, 0),
         white.clone(),
-    ))));
-    let mut box1 = construct_planar_quad_box(
+    )));
+    let box1 = construct_planar_quad_box(
         &Vec3::new_int(0, 0, 0),
         &Vec3::new_int(165, 330, 165),
         white.clone(),
-    )
-    .iter()
-    .map(|hittable| {
-        Arc::new(Hittables::Rotation(Rotation::new(
-            hittable.clone(),
-            Vec3Axis::Y,
-            15.0,
-        )))
-    })
-    .map(|hittable| {
-        Arc::new(Hittables::Translation(Translation::new(
-            hittable.clone(),
-            Vec3::new_int(265, 0, 295),
-        )))
-    })
-    .collect::<Vec<_>>();
-    hittable_list.append(&mut box1);
-    let mut box2 = construct_planar_quad_box(
+    );
+    let box1 = Rotation::new(Arc::new(box1), Vec3Axis::Y, 15.0);
+    let box1 = Translation::new(Arc::new(box1), Vec3::new_int(265, 0, 295));
+    hittable_list.add(Arc::new(box1));
+    let box2 = construct_planar_quad_box(
         &Vec3::new_int(0, 0, 0),
         &Vec3::new_int(165, 165, 165),
         white.clone(),
-    )
-    .iter()
-    .map(|hittable| {
-        Arc::new(Hittables::Rotation(Rotation::new(
-            hittable.clone(),
-            Vec3Axis::Y,
-            -18.0,
-        )))
-    })
-    .map(|hittable| {
-        Arc::new(Hittables::Translation(Translation::new(
-            hittable.clone(),
-            Vec3::new_int(130, 0, 65),
-        )))
-    })
-    .collect::<Vec<_>>();
-    hittable_list.append(&mut box2);
-    let world = BVH::from_hittable_list(&hittable_list);
+    );
+    let box2 = Rotation::new(Arc::new(box2), Vec3Axis::Y, -18.0);
+    let box2 = Translation::new(Arc::new(box2), Vec3::new_int(130, 0, 65));
+    hittable_list.add(Arc::new(box2));
+    let world = BVH::from_hittables_list(hittable_list.v);
 
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
-        samples_per_pixel: 100,
-        max_depth: 100,
+        samples_per_pixel: 50,
+        max_depth: 50,
         image_width: 600,
         fov: 40_f64,
         focus_angle: 0_f64,

@@ -1,8 +1,7 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
+use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
-use super::super::HittableObject;
 use super::{PlanarBase, PlanarObject};
 
 pub struct Quad {
@@ -21,7 +20,7 @@ impl Quad {
             material,
             // Important Note:
             // bbox requires padding as Some quads can lie on the axis (Size = 0)
-            bbox: AABB::from_points(&Q.clone(), &(Q.clone() + u.clone() + v.clone())).pad(),
+            bbox: AABB::from_points(Q.clone(), Q.clone() + u.clone() + v.clone()).pad(),
         }
     }
 }
@@ -31,12 +30,12 @@ impl PlanarObject for Quad {
         quad_interval.contains(alpha) && quad_interval.contains(beta)
     }
 }
-impl HittableObject for Quad {
+impl HittableWithBBox for Quad {
     fn bbox(&self) -> &AABB {
         &self.bbox
     }
 }
-impl Hittable<HitRecord> for Quad {
+impl Hittable for Quad {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let plane_hit = match self.planar_base.hit_plane(_ray, valid_t_interval) {
             Some(plane_hit) => plane_hit,

@@ -133,6 +133,11 @@ impl Hittable for BVH {
         }
     }
 }
+impl HittableWithBBox for BVH {
+    fn bbox(&self) -> &AABB {
+        &self.bbox
+    }
+}
 
 #[cfg(test)]
 mod test {

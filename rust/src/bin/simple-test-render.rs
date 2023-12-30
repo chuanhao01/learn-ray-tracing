@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    construct_planar_quad_box, Camera, CameraParams, Dielectric, Hittables, HittablesList,
-    Lambertain, Materials, Metal, Quad, ScatterMaterials, Sphere, Translation, Vec3, Vec3Axis, BVH,
+    construct_planar_quad_box, Camera, CameraParams, Dielectric, Hittable, HittableWithBBox,
+    HittablesList, Lambertain, Materials, Metal, Quad, ScatterMaterials, Sphere, Translation, Vec3,
+    Vec3Axis, BVH,
 };
 
 fn test_scene() {
@@ -98,7 +99,7 @@ fn test_scene() {
     //     Vec3::new(0.0, 0.75, 0.0),
     //     Arc::new(Materials::ScatterMaterial(material_metal)),
     // ))));
-    let center_quad = Arc::new(Hittables::Quad(Quad::new(
+    let center_quad = Arc::new(Quad::new(
         Vec3::new(-0.5, 0.0, -1.0),
         Vec3::new(1.0, 0.0, 0.0)
             .rotate_about_axis(&Vec3Axis::Y, 30.0)
@@ -109,14 +110,21 @@ fn test_scene() {
             .rotate_about_axis(&Vec3Axis::Y, 30.0),
         // Vec3::new(0.0, 0.5, 0.0),
         Arc::new(Materials::ScatterMaterial(material_blue)),
-    )));
+    ));
     hittable_list.add(center_quad.clone());
-    hittable_list.add(Arc::new(Hittables::Sphere(Sphere::new(
+    hittable_list.add(Arc::new(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
         Arc::new(Materials::ScatterMaterial(material_green)),
-    ))));
-    let world = BVH::from_hittable_list(&hittable_list);
+    )));
+
+    // let world = Sphere::new(
+    //     Vec3::new(0_f64, -100.5_f64, -1_f64),
+    //     100_f64,
+    //     Arc::new(Materials::ScatterMaterial(material_green)),
+    // );
+    // let world = hittable_list;
+    let world = BVH::from_hittables_list(hittable_list.v);
 
     let camera_params = CameraParams {
         samples_per_pixel: 50,

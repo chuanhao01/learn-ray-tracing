@@ -1,8 +1,7 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
+use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
-use super::super::HittableObject;
 use super::{PlanarBase, PlanarObject};
 
 pub struct Disk {
@@ -28,7 +27,7 @@ impl Disk {
             material,
             // Important Note:
             // bbox requires padding as Some quads can lie on the axis (Size = 0)
-            bbox: AABB::from_points(&bottom_left_corner, &top_left_corner).pad(),
+            bbox: AABB::from_points(bottom_left_corner, top_left_corner).pad(),
             radius,
         }
     }
@@ -38,12 +37,7 @@ impl PlanarObject for Disk {
         (alpha * alpha + beta * beta) <= (self.radius * self.radius)
     }
 }
-impl HittableObject for Disk {
-    fn bbox(&self) -> &AABB {
-        &self.bbox
-    }
-}
-impl Hittable<HitRecord> for Disk {
+impl Hittable for Disk {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let plane_hit = match self.planar_base.hit_plane(_ray, valid_t_interval) {
             Some(plane_hit) => plane_hit,
@@ -61,6 +55,11 @@ impl Hittable<HitRecord> for Disk {
             plane_hit.t,
             self.material.clone(),
         ))
+    }
+}
+impl HittableWithBBox for Disk {
+    fn bbox(&self) -> &AABB {
+        &self.bbox
     }
 }
 

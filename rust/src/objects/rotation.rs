@@ -1,10 +1,9 @@
-use std::{f64::INFINITY, fmt::Display, sync::Arc};
+use std::{f64::INFINITY, sync::Arc};
 
-use super::{HittableObject, Hittables};
-use crate::{HitRecord, Hittable, Interval, Ray, Vec3, Vec3Axis, AABB};
+use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Ray, Vec3, Vec3Axis, AABB};
 
 pub struct Rotation {
-    instance: Arc<Hittables>,
+    instance: Arc<dyn HittableWithBBox>,
     rotation_axis: Vec3Axis,
     /// Angle of Rotation around the rotation_axis Degress(360)
     deg_angle: f64,
@@ -12,7 +11,11 @@ pub struct Rotation {
 }
 impl Rotation {
     /// Creates a new Rotation Hittables Object, given an axis and degrees (360) of rotation
-    pub fn new(instance: Arc<Hittables>, rotation_axis: Vec3Axis, deg_angle: f64) -> Self {
+    pub fn new(
+        instance: Arc<dyn HittableWithBBox>,
+        rotation_axis: Vec3Axis,
+        deg_angle: f64,
+    ) -> Self {
         let aabb = instance.bbox();
         let mut bottom_left_min_aabb_point = Vec3::new(INFINITY, INFINITY, INFINITY);
         let mut top_right_max_aabb_point = Vec3::new(-INFINITY, -INFINITY, -INFINITY);
@@ -34,11 +37,11 @@ impl Rotation {
             instance,
             rotation_axis,
             deg_angle,
-            bbox: AABB::from_points(&bottom_left_min_aabb_point, &top_right_max_aabb_point),
+            bbox: AABB::from_points(bottom_left_min_aabb_point, top_right_max_aabb_point),
         }
     }
 }
-impl Hittable<HitRecord> for Rotation {
+impl Hittable for Rotation {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let object_space_ray = Ray {
             origin: _ray
@@ -62,18 +65,18 @@ impl Hittable<HitRecord> for Rotation {
         }
     }
 }
-impl HittableObject for Rotation {
+impl HittableWithBBox for Rotation {
     fn bbox(&self) -> &AABB {
         &self.bbox
     }
 }
 
-impl Display for Rotation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Rotation(rotation_axis: {}, rad_angle: {}, instance: {})",
-            self.rotation_axis, self.deg_angle, self.instance
-        )
-    }
-}
+// impl Display for Rotation {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(
+//             f,
+//             "Rotation(rotation_axis: {}, rad_angle: {}, instance: {})",
+//             self.rotation_axis, self.deg_angle, self.instance
+//         )
+//     }
+// }

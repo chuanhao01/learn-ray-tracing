@@ -1,8 +1,7 @@
 use std::{fmt::Display, sync::Arc};
 
-use crate::{HitRecord, Hittable, Interval, Materials, Ray, Vec3, AABB};
+use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
-use super::super::HittableObject;
 use super::{PlanarBase, PlanarObject};
 
 // Allow snake case for understanding the object reason
@@ -23,7 +22,7 @@ impl Triangle {
             material,
             // Important Note:
             // bbox requires padding as Some quads can lie on the axis (Size = 0)
-            bbox: AABB::from_points(&Q.clone(), &(Q.clone() + u.clone() + v.clone())).pad(),
+            bbox: AABB::from_points(Q.clone(), Q.clone() + u.clone() + v.clone()).pad(),
         }
     }
 }
@@ -52,12 +51,12 @@ impl PlanarObject for Triangle {
             < 1e-8_f64
     }
 }
-impl HittableObject for Triangle {
+impl HittableWithBBox for Triangle {
     fn bbox(&self) -> &AABB {
         &self.bbox
     }
 }
-impl Hittable<HitRecord> for Triangle {
+impl Hittable for Triangle {
     fn hit(&self, _ray: &Ray, valid_t_interval: Interval) -> Option<HitRecord> {
         let plane_hit = match self.planar_base.hit_plane(_ray, valid_t_interval) {
             Some(plane_hit) => plane_hit,

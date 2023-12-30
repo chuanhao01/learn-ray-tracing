@@ -148,6 +148,7 @@ pub trait Emittable {
     /// Return the light value of the material
     fn emit(&self) -> Vec3;
 }
+
 pub enum LightMaterials {
     Diffuse { power: f64 },
 }
