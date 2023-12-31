@@ -4,6 +4,7 @@ pub mod hittable;
 pub mod materials;
 pub mod objects;
 pub mod ray;
+pub mod textures;
 pub mod vec3;
 
 pub use camera::{Camera, CameraParams};
@@ -12,4 +13,5 @@ pub use hittable::{HitRecord, Hittable, HittableWithBBox, HittablesList, AABB, B
 pub use materials::{Dielectric, Diffuse, Lambertain, Materials, Metal, Scattered};
 pub use objects::{construct_planar_quad_box, Disk, Quad, Rotation, Sphere, Translation, Triangle};
 pub use ray::Ray;
+pub use textures::{ColorTexture, SolidColor};
 pub use vec3::{Vec3, Vec3Axis};

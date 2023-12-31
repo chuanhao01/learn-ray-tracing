@@ -2,18 +2,24 @@ use std::sync::Arc;
 
 use rust_simple_raytracer::{
     construct_planar_quad_box, Camera, CameraParams, Diffuse, HittablesList, Lambertain, Materials,
-    Quad, Rotation, Translation, Vec3, Vec3Axis, BVH,
+    Quad, Rotation, SolidColor, Translation, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
     let red = Materials::ScatterMaterial(Arc::new(Lambertain {
-        albedo: Vec3::new(0.65, 0.05, 0.05),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.65, 0.05, 0.05),
+        }),
     }));
     let white = Materials::ScatterMaterial(Arc::new(Lambertain {
-        albedo: Vec3::new(0.73, 0.73, 0.73),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.73, 0.73, 0.73),
+        }),
     }));
     let green = Materials::ScatterMaterial(Arc::new(Lambertain {
-        albedo: Vec3::new(0.12, 0.45, 0.15),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.12, 0.45, 0.15),
+        }),
     }));
     let light = Materials::LightMaterial(Arc::new(Diffuse { power: 15.0 }));
 

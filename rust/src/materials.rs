@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 
-use crate::{ray::Ray, HitRecord};
+use crate::{ray::Ray, ColorTexture, HitRecord};
 
 use super::Vec3;
 
@@ -16,9 +16,8 @@ pub trait Scatterable: Sync + Send {
 }
 
 pub struct Lambertain {
-    pub albedo: Vec3,
+    pub albedo: Arc<dyn ColorTexture>,
 }
-
 impl Scatterable for Lambertain {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
         let scattered_direction =
@@ -29,7 +28,9 @@ impl Scatterable for Lambertain {
             scattered_direction
         };
         Some(Scattered {
-            attenuation: self.albedo.clone(),
+            attenuation: self
+                .albedo
+                .color(hit_record.u, hit_record.v, hit_record.p.clone()),
             ray: Ray {
                 origin: hit_record.p.clone(),
                 direction: scattered_direction,

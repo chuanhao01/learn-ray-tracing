@@ -1,23 +1,31 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad, Sphere,
-    Vec3, Vec3Axis, BVH,
+    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad,
+    SolidColor, Sphere, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
     let material_ground = Arc::new(Lambertain {
-        albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
+        }),
     });
 
     let material_red = Arc::new(Lambertain {
-        albedo: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
+        }),
     });
     let material_green = Arc::new(Lambertain {
-        albedo: Vec3::new(0.0_f64, 0.8_f64, 0.0_f64),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.0_f64, 0.8_f64, 0.0_f64),
+        }),
     });
     let material_blue = Arc::new(Lambertain {
-        albedo: Vec3::new(0.0_f64, 0.0_f64, 0.8_f64),
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.0_f64, 0.0_f64, 0.8_f64),
+        }),
     });
 
     let material_metal = Arc::new(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.0_f64));
