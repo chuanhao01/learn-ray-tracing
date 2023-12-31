@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad,
-    SolidColor, Sphere, Vec3, Vec3Axis, BVH,
+    Camera, CameraParams, CheckeredTexture, Dielectric, HittablesList, Lambertain, Materials,
+    Metal, Quad, SolidColor, Sphere, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
@@ -120,7 +120,13 @@ fn test_scene() {
     hittable_list.add(Arc::new(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
-        Materials::ScatterMaterial(material_green),
+        Materials::ScatterMaterial(Arc::new(Lambertain {
+            albedo: Arc::new(CheckeredTexture::from_colors(
+                1.0,
+                Vec3::new(0.2, 0.3, 0.1),
+                Vec3::new(0.9, 0.9, 0.9),
+            )),
+        })),
     )));
 
     // let world = Sphere::new(
@@ -133,8 +139,8 @@ fn test_scene() {
 
     let camera_params = CameraParams {
         samples_per_pixel: 50,
-        max_depth: 20,
-        image_width: 400,
+        max_depth: 30,
+        image_width: 1000,
         fov: 70_f64,
         focus_angle: 0_f64,
         // focus_angle: 3_f64,

@@ -53,6 +53,9 @@ impl Vec3 {
     pub fn z(&self) -> f64 {
         self.e[2]
     }
+    pub fn xyz(&self) -> [f64; 3] {
+        self.e
+    }
 
     /// Returns the vector as a tuple for easy destructuring
     pub fn tuple(&self) -> (f64, f64, f64) {
