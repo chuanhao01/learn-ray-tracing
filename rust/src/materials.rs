@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use rand::{thread_rng, Rng};
 
 use crate::{ray::Ray, HitRecord};
@@ -9,7 +11,7 @@ pub struct Scattered {
     pub ray: Ray,
 }
 
-pub trait Scatterable {
+pub trait Scatterable: Sync + Send {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered>;
 }
 
@@ -127,40 +129,44 @@ impl Scatterable for Dielectric {
     }
 }
 
-pub enum ScatterMaterials {
-    Lambertain(Lambertain),
-    Metal(Metal),
-    Dielectric(Dielectric),
-    None,
-}
-impl Scatterable for ScatterMaterials {
-    fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
-        match self {
-            ScatterMaterials::Lambertain(lambertain) => lambertain.scatter(_ray, hit_record),
-            ScatterMaterials::Metal(metal) => metal.scatter(_ray, hit_record),
-            ScatterMaterials::Dielectric(dielectric) => dielectric.scatter(_ray, hit_record),
-            ScatterMaterials::None => None,
-        }
-    }
-}
-
-pub trait Emittable {
+pub trait Emittable: Sync + Send {
     /// Return the light value of the material
     fn emit(&self) -> Vec3;
 }
 
-pub enum LightMaterials {
-    Diffuse { power: f64 },
+pub struct Diffuse {
+    pub power: f64,
 }
-impl Emittable for LightMaterials {
+impl Emittable for Diffuse {
     fn emit(&self) -> Vec3 {
-        match self {
-            LightMaterials::Diffuse { power } => Vec3::new(*power, *power, *power),
-        }
+        Vec3::new(self.power, self.power, self.power)
     }
 }
 
 pub enum Materials {
-    ScatterMaterial(ScatterMaterials),
-    LightMaterial(LightMaterials),
+    ScatterMaterial(Arc<dyn Scatterable>),
+    LightMaterial(Arc<dyn Emittable>),
+}
+impl Clone for Materials {
+    fn clone(&self) -> Self {
+        match self {
+            Self::ScatterMaterial(scatter_material) => {
+                Self::ScatterMaterial(scatter_material.clone())
+            }
+            Self::LightMaterial(light_material) => Self::LightMaterial(light_material.clone()),
+        }
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod test {
+    use super::Scatterable;
+    use super::*;
+
+    pub struct TestScatterable {}
+    impl Scatterable for TestScatterable {
+        fn scatter(&self, _ray: &crate::Ray, hit_record: &crate::HitRecord) -> Option<Scattered> {
+            None
+        }
+    }
 }

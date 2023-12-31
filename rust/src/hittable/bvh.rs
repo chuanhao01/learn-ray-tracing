@@ -141,7 +141,7 @@ impl HittableWithBBox for BVH {
 
 #[cfg(test)]
 mod test {
-    use crate::{Materials, ScatterMaterials, Vec3};
+    use crate::{materials::test::TestScatterable, Materials, Vec3};
 
     use super::*;
 
@@ -156,7 +156,7 @@ mod test {
                 Some(HitRecord {
                     p: self.v.clone(),
                     t: 1.0,
-                    material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                    material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                     against_normal_unit: -self.v.clone(),
                     front_face: false,
                 })
@@ -201,10 +201,6 @@ mod test {
                 ouptut_hit_record.against_normal_unit
             );
             assert_eq!(hit_result.front_face, ouptut_hit_record.front_face);
-            assert!(matches!(
-                *hit_result.material,
-                Materials::ScatterMaterial(ScatterMaterials::None)
-            ));
         }
 
         let hit_test_hittable = Arc::new(TestHittable {
@@ -227,7 +223,7 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
-                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,
             },
@@ -243,7 +239,7 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
-                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,
             },
@@ -259,7 +255,7 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
-                material: Arc::new(Materials::ScatterMaterial(ScatterMaterials::None)),
+                material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,
             },

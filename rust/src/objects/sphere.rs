@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
@@ -7,11 +7,11 @@ use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
-    pub material: Arc<Materials>,
+    pub material: Materials,
     bbox: AABB,
 }
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, material: Arc<Materials>) -> Self {
+    pub fn new(center: Vec3, radius: f64, material: Materials) -> Self {
         let radius_v = Vec3::new(radius, radius, radius);
         let bbox = AABB::from_points(
             center.clone() - radius_v.clone(),
@@ -56,7 +56,7 @@ impl Hittable for Sphere {
             ray,
             &outward_normal_unit,
             root,
-            Arc::clone(&self.material),
+            self.material.clone(),
         ))
     }
 }
@@ -77,15 +77,15 @@ impl Display for Sphere {
 
 #[cfg(test)]
 mod test {
-    use crate::ScatterMaterials;
+    use crate::materials::test::TestScatterable;
 
     use super::*;
-    use std::f64::INFINITY;
+    use std::{f64::INFINITY, sync::Arc};
 
     #[test]
     fn test_sphere_new() {
-        let mat = Arc::new(Materials::ScatterMaterial(ScatterMaterials::None));
-        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
+        let mat = Materials::ScatterMaterial(Arc::new(TestScatterable {}));
+        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, mat);
         assert_eq!(s.bbox.x.min, -1.0);
         assert_eq!(s.bbox.y.min, -1.0);
         assert_eq!(s.bbox.z.min, -1.0);
@@ -98,8 +98,8 @@ mod test {
     #[test]
     fn test_sphere_hit() {
         // Ensure the ray hits the sphere
-        let mat = Arc::new(Materials::ScatterMaterial(ScatterMaterials::None));
-        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, Arc::clone(&mat));
+        let mat = Materials::ScatterMaterial(Arc::new(TestScatterable {}));
+        let s = Sphere::new(Vec3::new_int(0, 0, 0), 1.0, mat);
         let r = Ray {
             direction: Vec3::new_int(0, 0, 1),
             origin: Vec3::new_int(0, 0, -2),
@@ -116,7 +116,6 @@ mod test {
         assert_eq!(hr.p, Vec3::new_int(0, 0, -1));
         assert_eq!(hr.t, 1.0);
         assert_eq!(hr.against_normal_unit, Vec3::new_int(0, 0, -1));
-        assert!(Arc::ptr_eq(&mat, &hr.material));
         assert!(hr.front_face);
 
         // Ensure you get the second t value

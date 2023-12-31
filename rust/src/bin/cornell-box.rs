@@ -1,29 +1,21 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    construct_planar_quad_box, Camera, CameraParams, HittablesList, Lambertain, LightMaterials,
-    Materials, Quad, Rotation, ScatterMaterials, Translation, Vec3, Vec3Axis, BVH,
+    construct_planar_quad_box, Camera, CameraParams, Diffuse, HittablesList, Lambertain, Materials,
+    Quad, Rotation, Translation, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
-    let red = Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-        Lambertain {
-            albedo: Vec3::new(0.65, 0.05, 0.05),
-        },
-    )));
-    let white = Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-        Lambertain {
-            albedo: Vec3::new(0.73, 0.73, 0.73),
-        },
-    )));
-    let green = Arc::new(Materials::ScatterMaterial(ScatterMaterials::Lambertain(
-        Lambertain {
-            albedo: Vec3::new(0.12, 0.45, 0.15),
-        },
-    )));
-    let light = Arc::new(Materials::LightMaterial(LightMaterials::Diffuse {
-        power: 15.0,
+    let red = Materials::ScatterMaterial(Arc::new(Lambertain {
+        albedo: Vec3::new(0.65, 0.05, 0.05),
     }));
+    let white = Materials::ScatterMaterial(Arc::new(Lambertain {
+        albedo: Vec3::new(0.73, 0.73, 0.73),
+    }));
+    let green = Materials::ScatterMaterial(Arc::new(Lambertain {
+        albedo: Vec3::new(0.12, 0.45, 0.15),
+    }));
+    let light = Materials::LightMaterial(Arc::new(Diffuse { power: 15.0 }));
 
     let mut hittable_list = HittablesList::new();
     hittable_list.add(Arc::new(Quad::new(

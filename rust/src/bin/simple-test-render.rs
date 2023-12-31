@@ -1,31 +1,28 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    construct_planar_quad_box, Camera, CameraParams, Dielectric, Hittable, HittableWithBBox,
-    HittablesList, Lambertain, Materials, Metal, Quad, ScatterMaterials, Sphere, Translation, Vec3,
-    Vec3Axis, BVH,
+    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad, Sphere,
+    Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
-    let material_ground = ScatterMaterials::Lambertain(Lambertain {
+    let material_ground = Arc::new(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
     });
 
-    let material_red = ScatterMaterials::Lambertain(Lambertain {
+    let material_red = Arc::new(Lambertain {
         albedo: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
     });
-    let material_green = ScatterMaterials::Lambertain(Lambertain {
+    let material_green = Arc::new(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.8_f64, 0.0_f64),
     });
-    let material_blue = ScatterMaterials::Lambertain(Lambertain {
+    let material_blue = Arc::new(Lambertain {
         albedo: Vec3::new(0.0_f64, 0.0_f64, 0.8_f64),
     });
 
-    let material_metal =
-        ScatterMaterials::Metal(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.0_f64));
-    let material_metal_fuzzy =
-        ScatterMaterials::Metal(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.3_f64));
-    let material_glass = ScatterMaterials::Dielectric(Dielectric {
+    let material_metal = Arc::new(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.0_f64));
+    let material_metal_fuzzy = Arc::new(Metal::new(Vec3::new(0.1_f64, 0.2_f64, 0.5_f64), 0.3_f64));
+    let material_glass = Arc::new(Dielectric {
         index_of_reflectance: 1.4,
     });
 
@@ -109,13 +106,13 @@ fn test_scene() {
             .rotate_about_axis(&Vec3Axis::X, 30.0)
             .rotate_about_axis(&Vec3Axis::Y, 30.0),
         // Vec3::new(0.0, 0.5, 0.0),
-        Arc::new(Materials::ScatterMaterial(material_blue)),
+        Materials::ScatterMaterial(material_blue),
     ));
     hittable_list.add(center_quad.clone());
     hittable_list.add(Arc::new(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
-        Arc::new(Materials::ScatterMaterial(material_green)),
+        Materials::ScatterMaterial(material_green),
     )));
 
     // let world = Sphere::new(

@@ -5,7 +5,6 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
-use crate::materials::{Emittable, Scatterable};
 use crate::{Hittable, Interval, Materials};
 
 use super::helper::color_to_rgb;
@@ -194,13 +193,13 @@ impl Camera {
     /// Takes a ray and simulates ray tracing on it
     /// Refer to [render](Self::render)
     #[allow(clippy::only_used_in_recursion)]
-    fn color_ray<T: Hittable>(&self, _ray: &Ray, _world: &T, max_depth: i64) -> Vec3 {
+    fn color_ray<T: Hittable>(&self, ray: &Ray, world: &T, max_depth: i64) -> Vec3 {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }
 
-        let hit_record = match _world.hit(
-            _ray,
+        let hit_record = match world.hit(
+            ray,
             Interval {
                 min: 0.001,
                 max: INFINITY,
@@ -213,21 +212,18 @@ impl Camera {
             }
         };
 
-        match *hit_record.material {
-            Materials::ScatterMaterial(ref scatter_material) => {
-                match scatter_material.scatter(_ray, &hit_record) {
+        match &hit_record.material {
+            Materials::ScatterMaterial(scatter_material) => {
+                match scatter_material.scatter(ray, &hit_record) {
                     Some(scattered) => {
-                        scattered.attenuation
-                            * self.color_ray(&scattered.ray, _world, max_depth - 1)
+                        scattered.attenuation * self.color_ray(&scattered.ray, world, max_depth - 1)
                     }
-                    None => {
-                        // Scattered light is absorbed by the material
-                        Vec3::new_int(0, 0, 0)
-                    }
+                    // Scattered Light absorbed by the material
+                    None => Vec3::new_int(0, 0, 0),
                 }
             }
             // Hit a diffuse light source
-            Materials::LightMaterial(ref light_material) => light_material.emit(),
+            Materials::LightMaterial(light_material) => light_material.emit(),
         }
     }
     fn get_ray(&self, y: i64, x: i64) -> Ray {

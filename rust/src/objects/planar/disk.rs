@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
@@ -6,7 +6,7 @@ use super::{PlanarBase, PlanarObject};
 
 pub struct Disk {
     planar_base: PlanarBase,
-    pub material: Arc<Materials>,
+    pub material: Materials,
     bbox: AABB,
     radius: f64,
 }
@@ -16,7 +16,7 @@ impl Disk {
     /// u being the left pointing vector (in relation to the plane, will be converted to a unit vector)
     /// v being the up poiting vector (in relation to the plane, will be converted to a unit vector)
     /// raidus being the radius of the disk (In terms of unit vectors in the u and v vector directions)
-    pub fn new(Q: Vec3, u: Vec3, v: Vec3, radius: f64, material: Arc<Materials>) -> Self {
+    pub fn new(Q: Vec3, u: Vec3, v: Vec3, radius: f64, material: Materials) -> Self {
         let u = Vec3::unit_vector(&u);
         let v = Vec3::unit_vector(&v);
 

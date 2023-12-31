@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
@@ -8,7 +8,7 @@ use super::{PlanarBase, PlanarObject};
 #[allow(non_snake_case)]
 pub struct Triangle {
     planar_base: PlanarBase,
-    pub material: Arc<Materials>,
+    pub material: Materials,
     bbox: AABB,
 }
 #[allow(non_snake_case)]
@@ -16,7 +16,7 @@ impl Triangle {
     /// Q being the bottom left point
     /// u being the left pointing vector
     /// v being the up poiting vector
-    pub fn new(Q: Vec3, u: Vec3, v: Vec3, material: Arc<Materials>) -> Self {
+    pub fn new(Q: Vec3, u: Vec3, v: Vec3, material: Materials) -> Self {
         Self {
             planar_base: PlanarBase::new(Q.clone(), u.clone(), v.clone()),
             material,
