@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    Camera, CameraParams, CheckeredTexture, Dielectric, HittablesList, Lambertain, Materials,
-    Metal, Quad, SolidColor, Sphere, Vec3, Vec3Axis, BVH,
+    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad,
+    SolidColor, SpatialCheckeredTexture, Sphere, Vec3, Vec3Axis, BVH,
 };
 
 fn test_scene() {
@@ -121,7 +121,7 @@ fn test_scene() {
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
         Materials::ScatterMaterial(Arc::new(Lambertain {
-            albedo: Arc::new(CheckeredTexture::from_colors(
+            albedo: Arc::new(SpatialCheckeredTexture::from_colors(
                 1.0,
                 Vec3::new(0.2, 0.3, 0.1),
                 Vec3::new(0.9, 0.9, 0.9),

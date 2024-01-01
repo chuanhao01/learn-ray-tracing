@@ -7,6 +7,10 @@ pub fn from_fdegree_to_fradian(degree: f64) -> f64 {
     degree * PI / 180_f64
 }
 
+pub fn rgb_to_color(r: u8, g: u8, b: u8) -> Vec3 {
+    Vec3::new(r as f64 / 255.0, g as f64 / 255.0, b as f64 / 255.0)
+}
+
 /// Takes a float color vector and return the rgb int values as a tuple
 pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
     let c = color.clone();

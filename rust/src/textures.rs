@@ -1,8 +1,10 @@
 use crate::Vec3;
 
 mod color;
+mod image;
 
-pub use color::{CheckeredTexture, SolidColor};
+pub use color::{CheckeredTexture, SolidColor, SpatialCheckeredTexture};
+pub use image::Image;
 
 /// Public Trait to implement a 2D texture onto any object
 pub trait ColorTexture: Sync + Send {

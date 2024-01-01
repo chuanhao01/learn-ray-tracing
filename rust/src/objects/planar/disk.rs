@@ -49,11 +49,23 @@ impl Hittable for Disk {
             return None;
         }
 
+        // TODO: Check if works with -neg radius and very small radius (r ~= 0)
+        // TODO: Also crops out the texture since it does not wrap the image
+        // Map the alpha and beta values in relation to radius back to u, v
+        // Values in <alpha beta> to <u v>
+        //     <r 0> yields <1.00 0.50>       <-1  0> yields <0.00 0.50>
+        //     <0 r> yields <0.00 1.00>       < 0 -1> yields <0.00 0.00>
+        //     <0 0> yields <0.50 0.50>       < 0  0> yields <0.50 0.50>
+        let u = (plane_hit.alpha + self.radius) / (2.0 * self.radius);
+        let v = (plane_hit.beta + self.radius) / (2.0 * self.radius);
+
         Some(HitRecord::new(
             _ray,
             &self.planar_base.plane_unit_normal,
             plane_hit.t,
             self.material.clone(),
+            u,
+            v,
         ))
     }
 }

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{f64::consts::PI, fmt::Display};
 
 use crate::{HitRecord, Hittable, HittableWithBBox, Interval, Materials, Ray, Vec3, AABB};
 
@@ -23,6 +23,21 @@ impl Sphere {
             material,
             bbox,
         }
+    }
+    /// p is the point on a unit sphere
+    /// Returns (u, v)
+    /// u: [0, 1] of angle around the Y axis from X=-1
+    /// v: [0, 1] of angle around the Z axis (flat and over the Y Axis) from Y=-1 (coming up from either side, -pi - 0 - pi)
+    ///     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+    ///     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+    ///     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+    fn get_sphere_uv(p: Vec3) -> (f64, f64) {
+        let phi = f64::atan2(-p.z(), p.x()) + PI;
+        let theta = (-p.y()).acos();
+
+        let u = phi / (2.0 * PI);
+        let v = theta / PI;
+        (u, v)
     }
 }
 impl Hittable for Sphere {
@@ -50,13 +65,15 @@ impl Hittable for Sphere {
         if !valid_t_interval.surrounds(root) {
             return None;
         }
-        // let outward_normal_unit = (_ray.at(root) - self.center.clone()).unit_vector();
         let outward_normal_unit = (ray.at(root) - self.center.clone()) / self.radius;
+        let (u, v) = Self::get_sphere_uv(outward_normal_unit.clone());
         Some(HitRecord::new(
             ray,
             &outward_normal_unit,
             root,
             self.material.clone(),
+            u,
+            v,
         ))
     }
 }
@@ -147,5 +164,15 @@ mod test {
                 },
             )
             .is_none());
+    }
+    #[test]
+    fn test_sphere_uv() {
+        let (u, v) = Sphere::get_sphere_uv(Vec3::new(-1.0, 0.0, 0.0));
+        assert_eq!(u, 0.0);
+        assert_eq!(v, 0.5);
+
+        let (u, v) = Sphere::get_sphere_uv(Vec3::new(1.0, 0.0, 0.0));
+        assert_eq!(u, 0.5);
+        assert_eq!(v, 0.5);
     }
 }

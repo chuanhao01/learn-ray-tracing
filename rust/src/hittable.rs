@@ -24,7 +24,14 @@ pub struct HitRecord {
 impl HitRecord {
     /// Used to create the HitRecord object
     /// Takes in the ray that Hits the object as well as the
-    pub fn new(_ray: &Ray, outward_normal_unit: &Vec3, t: f64, material: Materials) -> Self {
+    pub fn new(
+        _ray: &Ray,
+        outward_normal_unit: &Vec3,
+        t: f64,
+        material: Materials,
+        u: f64,
+        v: f64,
+    ) -> Self {
         let p = _ray.at(t);
         let front_face = Vec3::dot(&_ray.direction, outward_normal_unit) < 0_f64;
         let against_normal_unit = if front_face {
@@ -35,8 +42,8 @@ impl HitRecord {
         HitRecord {
             p,
             t,
-            u: 0.0,
-            v: 0.0,
+            u,
+            v,
             material,
             against_normal_unit,
             front_face,

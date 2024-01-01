@@ -156,6 +156,8 @@ mod test {
                 Some(HitRecord {
                     p: self.v.clone(),
                     t: 1.0,
+                    u: self.v.x(),
+                    v: self.v.y(),
                     material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                     against_normal_unit: -self.v.clone(),
                     front_face: false,
@@ -201,6 +203,8 @@ mod test {
                 ouptut_hit_record.against_normal_unit
             );
             assert_eq!(hit_result.front_face, ouptut_hit_record.front_face);
+            assert_eq!(hit_result.u, ouptut_hit_record.u);
+            assert_eq!(hit_result.v, ouptut_hit_record.v);
         }
 
         let hit_test_hittable = Arc::new(TestHittable {
@@ -223,6 +227,8 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
+                u: 0.5,
+                v: 0.5,
                 material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,
@@ -239,6 +245,8 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
+                u: 0.5,
+                v: 0.5,
                 material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,
@@ -255,6 +263,8 @@ mod test {
             HitRecord {
                 p: Vec3::new(0.5, 0.5, 0.5),
                 t: 1.0,
+                u: 0.5,
+                v: 0.5,
                 material: Materials::ScatterMaterial(Arc::new(TestScatterable {})),
                 against_normal_unit: Vec3::new(-0.5, -0.5, -0.5),
                 front_face: false,

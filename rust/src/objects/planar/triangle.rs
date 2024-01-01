@@ -68,11 +68,14 @@ impl Hittable for Triangle {
             return None;
         }
 
+        // TODO: Object Cordinates (u, v) crop out the image, since the triangle is only half
         Some(HitRecord::new(
             _ray,
             &self.planar_base.plane_unit_normal,
             plane_hit.t,
             self.material.clone(),
+            plane_hit.alpha,
+            plane_hit.beta,
         ))
     }
 }

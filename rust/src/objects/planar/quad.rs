@@ -48,11 +48,15 @@ impl Hittable for Quad {
             return None;
         }
 
+        // Since the Quad is defined by u, v
+        // The alpha and beta values if there is a hit on the quad is already mapped correctly [0. 1]
         Some(HitRecord::new(
             _ray,
             &self.planar_base.plane_unit_normal,
             plane_hit.t,
             self.material.clone(),
+            plane_hit.alpha,
+            plane_hit.beta,
         ))
     }
 }
