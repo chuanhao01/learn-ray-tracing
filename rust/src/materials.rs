@@ -40,12 +40,12 @@ impl Scatterable for Lambertain {
 }
 
 pub struct Metal {
-    albedo: Vec3,
+    albedo: Arc<dyn ColorTexture>,
     /// Ratio to scale the sampled unit circle, for the reflected ray + fuzziness
     fuzzy_factor: f64,
 }
 impl Metal {
-    pub fn new(albedo: Vec3, fuzzy_factor: f64) -> Metal {
+    pub fn new(albedo: Arc<dyn ColorTexture>, fuzzy_factor: f64) -> Metal {
         Metal {
             albedo,
             fuzzy_factor: if fuzzy_factor < 1_f64 {
@@ -65,7 +65,9 @@ impl Scatterable for Metal {
         // Check if the scattered rays are cancelled out or scattered below the surface, in that case, ray is absorbed
         if Vec3::dot(&scattered_direction, &hit_record.against_normal_unit) > 0_f64 {
             Some(Scattered {
-                attenuation: self.albedo.clone(),
+                attenuation: self
+                    .albedo
+                    .color(hit_record.u, hit_record.v, hit_record.p.clone()),
                 ray: Ray {
                     origin: hit_record.p.clone(),
                     direction: scattered_direction,
@@ -161,12 +163,12 @@ impl Clone for Materials {
 
 #[cfg(test)]
 pub(crate) mod test {
-    use super::Scatterable;
     use super::*;
+    use crate::{HitRecord, Ray};
 
     pub struct TestScatterable {}
     impl Scatterable for TestScatterable {
-        fn scatter(&self, _ray: &crate::Ray, hit_record: &crate::HitRecord) -> Option<Scattered> {
+        fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
             None
         }
     }
