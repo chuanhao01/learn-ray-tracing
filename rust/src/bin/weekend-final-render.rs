@@ -2,21 +2,23 @@ use std::sync::Arc;
 
 use rand::{thread_rng, Rng};
 use rust_simple_raytracer::{
-    materials::Dielectric, Camera, CameraParams, Hittables, Lambertain, Metal, ScatterMaterials,
-    Sphere, Vec3,
+    materials::Dielectric, Camera, CameraParams, HittableWithBBox, Lambertain, Materials, Metal,
+    SolidColor, Sphere, Vec3, BVH,
 };
 
 fn main() {
     let mut rng = thread_rng();
 
-    let mut world: Vec<Hittables> = Vec::new();
-    let ground_material = Arc::new(ScatterMaterials::Lambertain(Lambertain {
-        albedo: Vec3::new(0.5, 0.5, 0.5),
-    }));
-    world.push(Hittables::Sphere(Sphere::new(
+    let mut world: Vec<Arc<dyn HittableWithBBox>> = Vec::new();
+    let ground_material = Arc::new(Lambertain {
+        albedo: Arc::new(SolidColor {
+            color: Vec3::new(0.5, 0.5, 0.5),
+        }),
+    });
+    world.push(Arc::new(Sphere::new(
         Vec3::new_int(0, -1000, 0),
         1000.0,
-        ground_material,
+        Materials::ScatterMaterial(ground_material.clone()),
     )));
 
     for a in -11..11 {
@@ -31,53 +33,60 @@ fn main() {
             if (center.clone() - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let sphere_material = if choose_mat < 0.8 {
                     // Lambertain
-                    let albedo = Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0);
-                    ScatterMaterials::Lambertain(Lambertain { albedo })
+                    let albedo = Arc::new(SolidColor {
+                        color: Vec3::random(0.0, 1.0) * Vec3::random(0.0, 1.0),
+                    });
+                    Materials::ScatterMaterial(Arc::new(Lambertain {
+                        albedo: albedo.clone(),
+                    }))
                 } else if choose_mat < 0.95 {
                     // Metal
-                    let albedo = Vec3::random(0.5, 1.0);
+                    let albedo = Arc::new(SolidColor {
+                        color: Vec3::random(0.5, 1.0),
+                    });
                     let fuzz = rng.gen_range(0.0..0.5);
-                    ScatterMaterials::Metal(Metal::new(albedo, fuzz))
+                    Materials::ScatterMaterial(Arc::new(Metal::new(albedo.clone(), fuzz)))
                 } else {
-                    ScatterMaterials::Dielectric(Dielectric {
+                    Materials::ScatterMaterial(Arc::new(Dielectric {
                         index_of_reflectance: 1.5,
-                    })
+                    }))
                 };
 
-                world.push(Hittables::Sphere(Sphere::new(
-                    center,
-                    0.2,
-                    Arc::new(sphere_material),
-                )))
+                world.push(Arc::new(Sphere::new(center, 0.2, sphere_material.clone())));
             }
         }
     }
 
-    world.push(Hittables::Sphere(Sphere::new(
+    world.push(Arc::new(Sphere::new(
         Vec3::new_int(0, 1, 0),
         1.0,
-        Arc::new(ScatterMaterials::Dielectric(Dielectric {
+        Materials::ScatterMaterial(Arc::new(Dielectric {
             index_of_reflectance: 1.5,
         })),
     )));
-    world.push(Hittables::Sphere(Sphere::new(
+    world.push(Arc::new(Sphere::new(
         Vec3::new_int(-4, 1, 0),
         1.0,
-        Arc::new(ScatterMaterials::Lambertain(Lambertain {
-            albedo: Vec3::new(0.4, 0.2, 0.1),
+        Materials::ScatterMaterial(Arc::new(Lambertain {
+            albedo: Arc::new(SolidColor {
+                color: Vec3::new(0.4, 0.2, 0.1),
+            }),
         })),
     )));
-    world.push(Hittables::Sphere(Sphere::new(
+    world.push(Arc::new(Sphere::new(
         Vec3::new_int(4, 1, 0),
         1.0,
-        Arc::new(ScatterMaterials::Metal(Metal::new(
-            Vec3::new(0.7, 0.6, 0.5),
+        Materials::ScatterMaterial(Arc::new(Metal::new(
+            Arc::new(SolidColor {
+                color: Vec3::new(0.7, 0.6, 0.5),
+            }),
             0.0,
         ))),
     )));
+    let world = BVH::from_hittables_list(world);
 
     let camera_params = CameraParams {
-        samples_per_pixel: 100,
+        samples_per_pixel: 200,
         max_depth: 50,
         image_width: 1200,
         fov: 20_f64,
