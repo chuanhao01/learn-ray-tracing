@@ -22,12 +22,8 @@ To build and run:
 
 ## Development
 
-What I used to make this (Besides `rust`):
-
-- `llvm-cov`
-  - For looking at code coverage of tests
-- Tarpulin
-  - For windows
+Mainly developed on VSCode on Linux.
+Tested to compile and run just fine on linux or windows.
 
 ## Acknowledgements, References and Related Projects
 
@@ -40,3 +36,26 @@ In no particular order:
 - [Chris Biscardi's Rust Adventure raytracer project](https://github.com/rust-adventure/raytracing-in-one-weekend/tree/f69c57162de6b3e7538bc26f5611f4e1142414b5)
   - [The accompanying youtube video](https://www.youtube.com/watch?v=6D8WVYm1YwY)
     - Very usefully as he talks about implementing the raytracer along with the book, interjecting insights and reasoning for his code in rust (Compared to cpp)
+
+## Things I thought were interesting
+
+### Rust (lack of) object polymorphism
+
+I found that the lack of `object polymorphism` in rust made implementation of the original `c++` code very different. A constant example is implementing any of the classes which required inheritance
+
+In rust, instead of direct inheritance, you have the option of using a `Enum` or `dyn Trait` (dynamic dispatch). Now, I don't think I have done enough to be able to speak
+
+### Rust robust built in tools
+
+I cannot over state how much easier it is to setup a development environment in rust as compared to `cpp` (or most other languages for that matter - I have only really done work with `python`, `c++` and `JS/TS`). Here are a few points with some direct cross-comparisons with other langauges.
+
+#### Integration of langauge server with IDE
+
+(For context, I mainly do all my development in `VSCode` and have a very minial `vim/neoviml` setup I use for editing code/text when I need to)
+
+The integration of the langauge server (rust-analyzer) just works with `VSCode`. Any option you need as well as the detection of config files(`Cargo.toml`) works. I don't need to add in some hack for searching for config paths, I don't need to hope that the extension or langauge server picks up my local version of rust/local libraries or that it has gotten the correct type information. The hints (and typing) it provides in the editor helps in development of code and in understanding what is happening (granted this is just baked into rust with it being strongly typed).
+
+For comparison in python:
+You would have to install `pyliny(or any other linter - i.e. pyright), black, isort and mypy` to get to a baseline of what rust has OOTB. Granted they technically are external libraries, but installing them and running them on every rust project is seamless. On python, getting these libraries installed system wide is not really an option for development on multiple applications with different python versions. As for getting them to work on a per project basis, its always a trail and error process, hoping you installed a captiable version with your main python version and libraries you used. You then pray that no breaking changes are shipped either to the extension or library that breaks functionality of the linter, formatter, or typing, or all of them at once, in your IDE (or worse introduce a single bug error/warning that getting rid of is somewhat troublesome with a hack).
+
+For `c++` besides ensuring you have the correct `stdlibs` and `libdev` packages installed, you would also probably want to use `CMake`. That is because linking and compiling all the different header files and code files is not something you want to write by hand when it gets longer than a single file. But this takes time away from coding and development of the application to deal with config issues, especially when compiling and running this on different hardware and software.
