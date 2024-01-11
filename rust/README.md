@@ -51,11 +51,24 @@ I cannot over state how much easier it is to setup a development environment in 
 
 #### Integration of langauge server with IDE
 
-(For context, I mainly do all my development in `VSCode` and have a very minial `vim/neoviml` setup I use for editing code/text when I need to)
+(For context, I mainly do all my development in `VSCode` and have a very minial `vim/neovim` setup I use for editing code/text when I need to)
 
-The integration of the langauge server (rust-analyzer) just works with `VSCode`. Any option you need as well as the detection of config files(`Cargo.toml`) works. I don't need to add in some hack for searching for config paths, I don't need to hope that the extension or langauge server picks up my local version of rust/local libraries or that it has gotten the correct type information. The hints (and typing) it provides in the editor helps in development of code and in understanding what is happening (granted this is just baked into rust with it being strongly typed).
+The integration of the langauge server (rust-analyzer) just works with `VSCode`.
+Any option you need as well as the detection of config files(`Cargo.toml`) works.
+I don't need to add in some hack for searching for config paths, I don't need to hope that the extension or langauge server picks up my local version of rust/local libraries or that it has gotten the correct type information.
+The hints (and typing) it provides in the editor helps in development and in understanding what is happening (granted this is just baked into rust with it being strongly typed).
 
 For comparison in python:
-You would have to install `pyliny(or any other linter - i.e. pyright), black, isort and mypy` to get to a baseline of what rust has OOTB. Granted they technically are external libraries, but installing them and running them on every rust project is seamless. On python, getting these libraries installed system wide is not really an option for development on multiple applications with different python versions. As for getting them to work on a per project basis, its always a trail and error process, hoping you installed a captiable version with your main python version and libraries you used. You then pray that no breaking changes are shipped either to the extension or library that breaks functionality of the linter, formatter, or typing, or all of them at once, in your IDE (or worse introduce a single bug error/warning that getting rid of is somewhat troublesome with a hack).
+You would have to install `pyliny(or any other linter - i.e. pyright), black, isort and mypy` to get to a baseline of what rust has OOTB.
+Granted they technically are external libraries, but installing them and running them on every rust project is seamless.
+On python, getting these libraries installed system wide is not really an option for development on multiple applications with different python versions.
+As for getting them to work on a per project basis, its always a trail and error process, hoping you installed a captiable version with your main python version and libraries you used.
+You then pray that no breaking changes are shipped either to the extension or library that breaks functionality of the linter, formatter, or typing, or all of them at once, in your IDE (or worse introduce a single bug error/warning that getting rid of is somewhat troublesome with a hack).
 
-For `c++` besides ensuring you have the correct `stdlibs` and `libdev` packages installed, you would also probably want to use `CMake`. That is because linking and compiling all the different header files and code files is not something you want to write by hand when it gets longer than a single file. But this takes time away from coding and development of the application to deal with config issues, especially when compiling and running this on different hardware and software.
+For `c++` besides ensuring you have the correct `stdlibs` and `libdev` packages installed, you would also probably want to use `CMake`.
+That is because linking and compiling all the different header files and code files is not something you want to write by hand when it gets longer than a single file.
+But this takes time away from coding and development of the application to deal with config issues, especially when compiling and running this on different hardware and software. (I am specifically referring to trying to get the same code to compile on different linux systems - arch, ubuntu, as well as different windows systems - mainly my main PC as well as other workstations that I happen to use and would like to continue development on, could be friends or work/school/cloud related systems)
+
+#### Robust Linter
+
+Continuing off my previous point, `rustfmt` and `clippy` work surprisingly well.
