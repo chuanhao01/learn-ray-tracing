@@ -1,13 +1,15 @@
+use clap::Parser;
+use image::RgbImage;
 use rand::{thread_rng, Rng};
 use std::sync::Arc;
 
 use rust_simple_raytracer::{
-    construct_planar_quad_box, Camera, CameraParams, Dielectric, Diffuse, HittableWithBBox, Image,
-    Lambertain, Materials, Metal, Quad, Rotation, SolidColor, Sphere, Translation, Vec3, Vec3Axis,
-    BVH,
+    construct_planar_quad_box, Camera, CameraParams, Cli, Dielectric, Diffuse, HittableWithBBox,
+    Image, Lambertain, Materials, Metal, Quad, Rotation, SolidColor, Sphere, Translation, Vec3,
+    Vec3Axis, BVH,
 };
 
-fn main() {
+fn scene() -> RgbImage {
     let mut rng = thread_rng();
     let mut hittable_list: Vec<Arc<dyn HittableWithBBox>> = Vec::new();
 
@@ -123,5 +125,10 @@ fn main() {
     let camera = Camera::new(camera_params);
 
     eprintln!("{:?}", camera);
-    camera.render(&world);
+    camera.render_rgbimage(&world)
+}
+
+fn main() {
+    let cli = Cli::parse();
+    cli.save_image(scene());
 }

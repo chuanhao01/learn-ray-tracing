@@ -86,7 +86,7 @@ fn main() {
     let world = BVH::from_hittables_list(world);
 
     let camera_params = CameraParams {
-        samples_per_pixel: 200,
+        samples_per_pixel: 100,
         max_depth: 50,
         image_width: 1200,
         fov: 20_f64,

@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
+use clap::Parser;
+use image::RgbImage;
 use rust_simple_raytracer::{
-    Camera, CameraParams, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad,
+    Camera, CameraParams, Cli, Dielectric, HittablesList, Lambertain, Materials, Metal, Quad,
     SolidColor, SpatialCheckeredTexture, Sphere, Vec3, Vec3Axis, BVH,
 };
 
-fn test_scene() {
+fn scene() -> RgbImage {
     let material_ground = Arc::new(Lambertain {
         albedo: Arc::new(SolidColor {
             color: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
@@ -160,9 +162,10 @@ fn test_scene() {
     let camera = Camera::new(camera_params);
 
     eprintln!("{:?}", camera);
-    camera.render(&world);
+    camera.render_rgbimage(&world)
 }
 
 fn main() {
-    test_scene();
+    let cli = Cli::parse();
+    cli.save_image(scene());
 }

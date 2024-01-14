@@ -1,3 +1,4 @@
+use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 use std::f64::INFINITY;
 
@@ -188,6 +189,46 @@ impl Camera {
                 println!("{}, {}, {}", pixel_r, pixel_g, pixel_b);
             }
         }
+    }
+
+    /// Generic render function that takes in the world to render and returns an RGBImage
+    pub fn render_rgbimage<T: Hittable + Sync + Send>(&self, world: &T) -> RgbImage {
+        let progress_bar = ProgressBar::new(self.image_height as u64);
+        let mut image = RgbImage::new(self.image_width as u32, self.image_height as u32);
+
+        for y in 0..self.image_height {
+            progress_bar.inc(1);
+            for x in 0..self.image_width {
+                let mut rays: Vec<Ray> = Vec::new();
+                for _ in 0..self.samples_per_pixel {
+                    rays.push(self.get_ray(y, x));
+                }
+                let pixel_color = rays
+                    .par_iter()
+                    .fold(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, ray| {
+                            acc += self.color_ray(ray, world, self.max_depth);
+                            acc
+                        },
+                    )
+                    .reduce(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, color| {
+                            acc += color;
+                            acc
+                        },
+                    );
+                let (pixel_r, pixel_g, pixel_b) =
+                    color_to_rgb(&pixel_color, self.samples_per_pixel);
+                image.put_pixel(
+                    x as u32,
+                    y as u32,
+                    Rgb([pixel_r as u8, pixel_g as u8, pixel_b as u8]),
+                );
+            }
+        }
+        image
     }
 
     /// Takes a ray and simulates ray tracing on it

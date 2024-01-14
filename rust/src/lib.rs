@@ -1,4 +1,5 @@
 pub mod camera;
+pub mod cli;
 pub mod helper;
 pub mod hittable;
 pub mod materials;
@@ -8,6 +9,7 @@ pub mod textures;
 pub mod vec3;
 
 pub use camera::{Camera, CameraParams};
+pub use cli::Cli;
 pub use helper::{color_to_rgb, rgb_to_color, Interval};
 pub use hittable::{HitRecord, Hittable, HittableWithBBox, HittablesList, AABB, BVH};
 pub use materials::{Dielectric, Diffuse, Lambertain, Materials, Metal, Scattered};

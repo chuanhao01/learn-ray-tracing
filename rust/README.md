@@ -25,6 +25,15 @@ To build and run:
 Mainly developed on VSCode on Linux.
 Tested to compile and run just fine on linux or windows.
 
+### Development Notes
+
+- The only libraries used are to make interfacing with the project easier
+  - Clap - For handling CLI
+  - Rayon - For easier and better multi-threading performance (Needed for more complicated renders)
+  - indicatif - For progress bar in the terminal
+  - image - For handling output to a `png` image
+    - Was simply using the `ppm3` format to stdout before this
+
 ## Acknowledgements, References and Related Projects
 
 I used quite a bit of references for this project, particularly to see how to implement the same things the `"rust"` way to help me in understand and solidify the harder concepts of rust.
