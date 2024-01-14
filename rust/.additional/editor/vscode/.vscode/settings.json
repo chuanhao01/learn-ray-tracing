@@ -6,5 +6,8 @@
   "[rust]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
-  }
+  },
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml"
+  ]
 }
