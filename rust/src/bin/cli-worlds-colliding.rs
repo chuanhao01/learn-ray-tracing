@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
+use clap::Parser;
+use image::RgbImage;
 use rust_simple_raytracer::{
-    Camera, CameraParams, CheckeredTexture, HittableWithBBox, Image, Lambertain, Materials,
-    SpatialCheckeredTexture, Sphere, Vec3, BVH,
+    Camera, CameraParams, CheckeredTexture, Cli, HittableWithBBox, Lambertain, Materials, Sphere,
+    Vec3, BVH,
 };
 
-fn test_scene() {
+fn scene() -> RgbImage {
     let checkered = Materials::ScatterMaterial(Arc::new(Lambertain {
         albedo: Arc::new(CheckeredTexture::from_colors(
             100.0,
@@ -13,21 +15,6 @@ fn test_scene() {
             Vec3::new(0.9, 0.9, 0.9),
         )),
     }));
-    // let checkered = Materials::ScatterMaterial(Arc::new(Lambertain {
-    //     albedo: Arc::new(SpatialCheckeredTexture::from_colors(
-    //         2.0,
-    //         Vec3::new(0.2, 0.3, 0.1),
-    //         Vec3::new(0.9, 0.9, 0.9),
-    //     )),
-    // }));
-
-    // let checkered = Materials::ScatterMaterial(Arc::new(Lambertain {
-    //     albedo: Arc::new(Image::new_with_color(
-    //         1.0,
-    //         "assets/earthmap.jpg",
-    //         Vec3::new(0.0, 1.0, 1.0),
-    //     )),
-    // }));
     let hittable_list: Vec<Arc<dyn HittableWithBBox>> = vec![
         Arc::new(Sphere::new(
             Vec3::new_int(0, -10, 0),
@@ -58,9 +45,10 @@ fn test_scene() {
     let camera = Camera::new(camera_params);
 
     eprintln!("{:?}", camera);
-    camera.render(&world);
+    camera.render_rgbimage(&world)
 }
 
 fn main() {
-    test_scene();
+    let cli = Cli::parse();
+    cli.save_image(scene());
 }

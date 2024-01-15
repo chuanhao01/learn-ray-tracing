@@ -3,11 +3,10 @@ use std::sync::Arc;
 use clap::Parser;
 use image::RgbImage;
 use rust_simple_raytracer::{
-    Camera, CameraParams, Cli, Dielectric, HittableWithBBox, Lambertain, Materials, Metal, Quad,
-    SolidColor, Sphere, Vec3, BVH,
+    Camera, CameraParams, Cli, Dielectric, Disk, HittablesList, Lambertain, Materials, Metal, Quad,
+    SolidColor, Sphere, Triangle, Vec3, BVH,
 };
 
-#[allow(clippy::vec_init_then_push)]
 fn scene() -> RgbImage {
     let left_red = Arc::new(Lambertain {
         albedo: Arc::new(SolidColor {
@@ -48,52 +47,54 @@ fn scene() -> RgbImage {
         0.3_f64,
     ));
     let material_glass = Arc::new(Dielectric {
-        index_of_reflectance: 1.4,
+        index_of_reflectance: 2.0,
     });
 
-    let mut hittable_list: Vec<Arc<dyn HittableWithBBox>> = Vec::new();
-    hittable_list.push(Arc::new(Quad::new(
-        Vec3::new_int(-3, -2, 5),
+    let mut hittable_list = HittablesList::new();
+    hittable_list.add(Arc::new(Disk::new(
+        Vec3::new_int(-3, -2, 3),
         Vec3::new_int(0, 0, -4),
         Vec3::new_int(0, 4, 0),
+        1.0,
         Materials::ScatterMaterial(left_red.clone()),
     )));
-    hittable_list.push(Arc::new(Quad::new(
+    hittable_list.add(Arc::new(Quad::new(
         Vec3::new_int(-2, -2, 0),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 4, 0),
         Materials::ScatterMaterial(back_green.clone()),
     )));
-    hittable_list.push(Arc::new(Quad::new(
+    hittable_list.add(Arc::new(Triangle::new(
         Vec3::new_int(3, -2, 1),
         Vec3::new_int(0, 0, 4),
         Vec3::new_int(0, 4, 0),
-        Materials::ScatterMaterial(right_blue.clone()),
+        Materials::ScatterMaterial(material_metal.clone()),
     )));
-    hittable_list.push(Arc::new(Quad::new(
+    hittable_list.add(Arc::new(Disk::new(
         Vec3::new_int(-2, 3, 1),
-        Vec3::new_int(4, 0, 0),
+        Vec3::new(4.0, 0.1, 0.0),
         Vec3::new_int(0, 0, 4),
+        1.0,
         Materials::ScatterMaterial(upper_orange.clone()),
     )));
-    hittable_list.push(Arc::new(Quad::new(
+    hittable_list.add(Arc::new(Triangle::new(
         Vec3::new_int(-2, -3, 5),
         Vec3::new_int(4, 0, 0),
         Vec3::new_int(0, 0, -4),
         Materials::ScatterMaterial(lower_teal.clone()),
     )));
-    hittable_list.push(Arc::new(Sphere::new(
+    hittable_list.add(Arc::new(Sphere::new(
         Vec3::new(0.0, 0.0, 2.0),
-        1.5,
-        Materials::ScatterMaterial(material_metal.clone()),
+        0.8,
+        Materials::ScatterMaterial(material_metal_fuzzy.clone()),
     )));
-    let world = BVH::from_hittables_list(hittable_list);
+    let world = BVH::from_hittables_list(hittable_list.v);
 
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
         samples_per_pixel: 200,
         max_depth: 50,
-        image_width: 600,
+        image_width: 400,
         fov: 80_f64,
         focus_angle: 0_f64,
         look_from: Vec3::new(0.0, 0.0, 9.0),

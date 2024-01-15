@@ -3,18 +3,12 @@ use std::sync::Arc;
 use clap::Parser;
 use image::RgbImage;
 use rust_simple_raytracer::{
-    Camera, CameraParams, Cli, Dielectric, HittableWithBBox, HittablesList, Lambertain, Materials,
-    Metal, Quad, SolidColor, SpatialCheckeredTexture, Sphere, Vec3, Vec3Axis, BVH,
+    Camera, CameraParams, Cli, Dielectric, HittableWithBBox, Lambertain, Materials, Metal,
+    SolidColor, SpatialCheckeredTexture, Sphere, Vec3, BVH,
 };
 
 #[allow(clippy::vec_init_then_push)]
 fn scene() -> RgbImage {
-    let material_ground = Arc::new(Lambertain {
-        albedo: Arc::new(SolidColor {
-            color: Vec3::new(0.8_f64, 0.8_f64, 0_f64),
-        }),
-    });
-
     let material_red = Arc::new(Lambertain {
         albedo: Arc::new(SolidColor {
             color: Vec3::new(0.8_f64, 0.0_f64, 0.0_f64),
