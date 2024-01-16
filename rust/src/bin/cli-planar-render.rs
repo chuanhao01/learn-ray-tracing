@@ -94,7 +94,7 @@ fn scene() -> RgbImage {
         aspect_ratio: 1.0,
         samples_per_pixel: 200,
         max_depth: 50,
-        image_width: 400,
+        image_width: 600,
         fov: 80_f64,
         focus_angle: 0_f64,
         look_from: Vec3::new(0.0, 0.0, 9.0),

@@ -31,7 +31,7 @@ fn scene() -> RgbImage {
     let world = BVH::from_hittables_list(hittable_list);
 
     let camera_params = CameraParams {
-        samples_per_pixel: 100,
+        samples_per_pixel: 200,
         max_depth: 50,
         image_width: 600,
         fov: 20_f64,

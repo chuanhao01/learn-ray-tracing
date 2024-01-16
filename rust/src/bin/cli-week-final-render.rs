@@ -112,8 +112,8 @@ fn scene() -> RgbImage {
     let camera_params = CameraParams {
         aspect_ratio: 1.0,
         samples_per_pixel: 500,
-        max_depth: 40,
-        image_width: 800,
+        max_depth: 50,
+        image_width: 1200,
         fov: 40_f64,
         focus_angle: 0_f64,
         look_from: Vec3::new_int(478, 278, -600),
