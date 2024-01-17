@@ -87,6 +87,11 @@ fn scene() -> RgbImage {
         -0.4,
         Materials::ScatterMaterial(material_glass.clone()),
     )));
+    hittable_list.push(Arc::new(Sphere::new(
+        Vec3::new(-1.5, 0.0, -1.0),
+        0.5,
+        Materials::ScatterMaterial(material_glass.clone()),
+    )));
 
     hittable_list.push(Arc::new(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
