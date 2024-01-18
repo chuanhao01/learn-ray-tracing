@@ -34,9 +34,10 @@ Requires:
 
 To build and run:
 
-- `cargo run -r`
-  - Runs the `main.rs` file and has the ppm file contents write to `stdout`
-  - A better command to run would be `cargo run -r > test.ppm`
+- `cargo run -r --bin "cli-BINARY_NAME" -- -h`
+  - Runs the render with a CLI helper
+- `cargo run -r --bin OTHERS-EXAMPLES`
+  - Runs the example with the ppm file contents written to `stdout`
 - `cargo build -r` and run the binary at `target/release/rust-simple-raytracer(.exe)`
 
 ## Development
@@ -53,6 +54,7 @@ Tested to compile and run just fine on linux or windows.
   - image - For handling output to a `png` image
     - Was simply using the `ppm3` format to stdout before this
 
+- `.additional/editor` - Additional VSCode settings I used
 - `src` - Source Code
   - `bin` - Specific binary files that are compiled with the ray tracing library
     - `others`  - Contains other examples I did before implementing the CLI helper
