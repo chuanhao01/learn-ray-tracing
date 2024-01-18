@@ -1,3 +1,4 @@
+use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 use std::f64::INFINITY;
 
@@ -5,8 +6,7 @@ use indicatif::ProgressBar;
 use rand::prelude::thread_rng;
 use rand::Rng;
 
-use crate::materials::Scatterable;
-use crate::{Hittable, Hittables, Interval};
+use crate::{Hittable, Interval, Materials};
 
 use super::helper::color_to_rgb;
 use super::ray::Ray;
@@ -42,18 +42,38 @@ pub struct CameraParams {
     pub focus_angle: f64,
     /// Distance from Camera center to focus plane
     pub focus_distance: f64,
+    /// Background color (When the ray misses the world)
+    pub background: Vec3,
+}
+impl Default for CameraParams {
+    fn default() -> Self {
+        CameraParams {
+            image_width: 400,
+            aspect_ratio: 16_f64 / 9_f64,
+            samples_per_pixel: 50,
+            max_depth: 20,
+            fov: 90_f64,
+            look_from: Vec3::new_int(0, 0, 0),
+            look_at: Vec3::new_int(0, 0, -1),
+            v_up: Vec3::new_int(0, 1, 0),
+            focus_angle: 0_f64,
+            focus_distance: 1_f64,
+            background: Vec3::new(0.7, 0.8, 1.0),
+        }
+    }
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct Camera {
     image_width: i64,
     image_height: i64,
-    aspect_ratio: f64,
 
     samples_per_pixel: i64,
     max_depth: i64,
 
     focus_angle: f64,
+    background: Vec3,
 
     /// Point of the Camera center (Same as [CameraParams.look_from])
     center: Vec3,
@@ -77,23 +97,6 @@ pub struct Camera {
     defocus_disk_u: Vec3,
     /// Vector v of the defocus disk (y-axis length)
     defocus_disk_v: Vec3,
-}
-
-impl Default for CameraParams {
-    fn default() -> Self {
-        CameraParams {
-            image_width: 400,
-            aspect_ratio: 16_f64 / 9_f64,
-            samples_per_pixel: 50,
-            max_depth: 20,
-            fov: 90_f64,
-            look_from: Vec3::new_int(0, 0, 0),
-            look_at: Vec3::new_int(0, 0, -1),
-            v_up: Vec3::new_int(0, 1, 0),
-            focus_angle: 0_f64,
-            focus_distance: 1_f64,
-        }
-    }
 }
 
 impl Camera {
@@ -127,10 +130,10 @@ impl Camera {
         Camera {
             image_width: camera_params.image_width,
             image_height,
-            aspect_ratio: camera_params.aspect_ratio,
             samples_per_pixel: camera_params.samples_per_pixel,
             max_depth: camera_params.max_depth,
             focus_angle: camera_params.focus_angle,
+            background: camera_params.background.clone(),
             center: camera_params.look_from.clone(),
             u: u.clone(),
             v: v.clone(),
@@ -143,7 +146,14 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &Vec<Hittables>) {
+    /// Renders the World with the given camera params.
+    /// Ideally, the render function should only be called.
+    /// Takes in Any world which implements [Hittable]
+    ///
+    // Implementation Details:
+    // Used a generic type as it will only generate the static dispatch given the actual type that implements `Hittable` is used with this function
+    // This way, we can use any `Hittable` world, and have no draw backs (Unless we call this function with 2 different `Hittable` types, then the generated function will be duplicated for the types)
+    pub fn render<T: Hittable + Sync + Send>(&self, world: &T) {
         println!("P3");
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
@@ -174,7 +184,6 @@ impl Camera {
                             acc
                         },
                     );
-                // pixel_color += self.color_ray(&ray, world, self.max_depth);
                 let (pixel_r, pixel_g, pixel_b) =
                     color_to_rgb(&pixel_color, self.samples_per_pixel);
                 println!("{}, {}, {}", pixel_r, pixel_g, pixel_b);
@@ -182,38 +191,81 @@ impl Camera {
         }
     }
 
+    /// Generic render function that takes in the world to render and returns an RGBImage
+    pub fn render_rgbimage<T: Hittable + Sync + Send>(&self, world: &T) -> RgbImage {
+        let progress_bar = ProgressBar::new(self.image_height as u64);
+        let mut image = RgbImage::new(self.image_width as u32, self.image_height as u32);
+
+        for y in 0..self.image_height {
+            progress_bar.inc(1);
+            for x in 0..self.image_width {
+                let mut rays: Vec<Ray> = Vec::new();
+                for _ in 0..self.samples_per_pixel {
+                    rays.push(self.get_ray(y, x));
+                }
+                let pixel_color = rays
+                    .par_iter()
+                    .fold(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, ray| {
+                            acc += self.color_ray(ray, world, self.max_depth);
+                            acc
+                        },
+                    )
+                    .reduce(
+                        || Vec3::new_int(0, 0, 0),
+                        |mut acc, color| {
+                            acc += color;
+                            acc
+                        },
+                    );
+                let (pixel_r, pixel_g, pixel_b) =
+                    color_to_rgb(&pixel_color, self.samples_per_pixel);
+                image.put_pixel(
+                    x as u32,
+                    y as u32,
+                    Rgb([pixel_r as u8, pixel_g as u8, pixel_b as u8]),
+                );
+            }
+        }
+        image
+    }
+
     /// Takes a ray and simulates ray tracing on it
+    /// Refer to [render](Self::render)
     #[allow(clippy::only_used_in_recursion)]
-    fn color_ray(&self, _ray: &Ray, _world: &Vec<Hittables>, max_depth: i64) -> Vec3 {
+    fn color_ray<T: Hittable>(&self, ray: &Ray, world: &T, max_depth: i64) -> Vec3 {
         if max_depth <= 0 {
             return Vec3::new_int(0, 0, 0);
         }
 
-        let hit_record = match _world.hit(
-            _ray,
+        let hit_record = match world.hit(
+            ray,
             Interval {
-                l: 0.001,
-                r: INFINITY,
+                min: 0.001,
+                max: INFINITY,
             },
         ) {
             Some(hit_record) => hit_record,
             None => {
-                // Did not hit anything in the _world, return "sky light"
-                // Interpolation of y value for sky color
-                let ray_direction_unit = _ray.direction.unit_vector();
-                let a = 0.5_f64 * (ray_direction_unit.y() + 1_f64);
-                return (1_f64 - a) * Vec3::new(1_f64, 1_f64, 1_f64)
-                    + a * Vec3::new(0.5_f64, 0.7_f64, 1.0_f64);
+                // Did not hit anything in the _world, return background
+                return self.background.clone();
             }
         };
 
-        match hit_record.material.scatter(_ray, &hit_record) {
-            Some(scattered) => {
-                scattered.attenuation * self.color_ray(&scattered.ray, _world, max_depth - 1)
+        match &hit_record.material {
+            Materials::ScatterMaterial(scatter_material) => {
+                match scatter_material.scatter(ray, &hit_record) {
+                    Some(scattered) => {
+                        scattered.attenuation * self.color_ray(&scattered.ray, world, max_depth - 1)
+                    }
+                    // Scattered Light absorbed by the material
+                    None => Vec3::new_int(0, 0, 0),
+                }
             }
-            None => Vec3::new_int(0, 0, 0), // If the material absorbs the light
+            // Hit a diffuse light source
+            Materials::LightMaterial(light_material) => light_material.emit(),
         }
-        // Vec3::new_int(0, 0, 0)
     }
     fn get_ray(&self, y: i64, x: i64) -> Ray {
         let pixel_center = self.pixel_00_loc.clone()
@@ -241,7 +293,8 @@ impl Camera {
     /// Samples a origin point from the defocus disk
     fn defocus_disk_sample(&self) -> Vec3 {
         let mut rng = thread_rng();
-        self.center.clone() + self.defocus_disk_u.clone() * rng.gen_range(-1_f64..1_f64)
+        self.center.clone()
+            + self.defocus_disk_u.clone() * rng.gen_range(-1_f64..1_f64)
             + self.defocus_disk_v.clone() * rng.gen_range(-1_f64..1_f64)
     }
 }

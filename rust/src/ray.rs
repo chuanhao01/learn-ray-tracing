@@ -5,6 +5,7 @@ use super::Vec3;
 /// Represent a Ray in the equation: R = O + tD
 /// With O = Origin and D = Direction
 /// To get the point at float t, use [Ray::at]
+#[derive(Default)]
 pub struct Ray {
     /// Point of Origin for the Ray
     pub origin: Vec3,
@@ -17,7 +18,6 @@ impl Ray {
         self.origin.clone() + t * self.direction.clone()
     }
 }
-
 impl Display for Ray {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -25,6 +25,14 @@ impl Display for Ray {
             "Ray:\nOrigin: {}\nDirection: {}",
             self.origin, self.direction
         )
+    }
+}
+impl Clone for Ray {
+    fn clone(&self) -> Self {
+        Ray {
+            origin: self.origin.clone(),
+            direction: self.direction.clone(),
+        }
     }
 }
 

@@ -1,10 +1,14 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, fmt::Display};
 
 use super::Vec3;
 
 /// Converts a degree value into radians which we use internally
 pub fn from_fdegree_to_fradian(degree: f64) -> f64 {
     degree * PI / 180_f64
+}
+
+pub fn rgb_to_color(r: u8, g: u8, b: u8) -> Vec3 {
+    Vec3::new(r as f64 / 255.0, g as f64 / 255.0, b as f64 / 255.0)
 }
 
 /// Takes a float color vector and return the rgb int values as a tuple
@@ -28,22 +32,54 @@ pub fn color_to_rgb(color: &Vec3, samples_per_pixel: i64) -> (i64, i64, i64) {
 /// Simple structure for representing Intervals
 ///
 /// There is a way to do it in rust with std::ops::Range,
-/// but I don't know and truct myself to use it properly
+/// but I don't know and trust myself to use it properly
+#[derive(Default, Clone, Copy)]
 pub struct Interval {
     /// Left bound
-    pub l: f64,
+    pub min: f64,
     /// Right bound
-    pub r: f64,
+    pub max: f64,
 }
-
 impl Interval {
+    /// Creates an interval that encapsulates both input intervals (i.e. a larger than both intervals)
+    pub fn from_interval(a: &Self, b: &Self) -> Self {
+        Self {
+            min: f64::min(a.min, b.min),
+            max: f64::max(a.max, b.max),
+        }
+    }
+    /// Translate the given Interval by a given value, returns a new [Interval]
+    pub fn translate(&self, offset: f64) -> Self {
+        Self {
+            min: self.min + offset,
+            max: self.max + offset,
+        }
+    }
+
+    /// returns the size of the interval
+    pub fn size(&self) -> f64 {
+        self.max - self.min
+    }
+    /// Expands the interval with the given delta, lowering the min by half and increasing the max by half
+    pub fn expand(&self, delta: f64) -> Interval {
+        let padding = delta / 2_f64;
+        Interval {
+            min: self.min - padding,
+            max: self.max + padding,
+        }
+    }
     /// Checks if provided x is `l <= x <= r`
     pub fn contains(&self, x: f64) -> bool {
-        self.l <= x && x <= self.r
+        self.min <= x && x <= self.max
     }
     /// Checks if provided x is `l < x < r`
     pub fn surrounds(&self, x: f64) -> bool {
-        self.l < x && x < self.r
+        self.min < x && x < self.max
+    }
+}
+impl Display for Interval {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Interval(min: {}, max: {})", self.min, self.max)
     }
 }
 
@@ -69,5 +105,30 @@ mod test {
 
         let rgb = color_to_rgb(&Vec3::new(0.5, 0.5, 0.5), 1);
         assert_eq!(rgb, (181, 181, 181));
+    }
+
+    #[test]
+    fn test_interval_default() {
+        let i = Interval::default();
+        assert_eq!(i.min, 0_f64);
+        assert_eq!(i.max, 0_f64);
+
+        let new_interval = Interval::from_interval(
+            &i,
+            &Interval {
+                min: -3_f64,
+                max: 3_f64,
+            },
+        );
+        assert_eq!(new_interval.min, -3_f64);
+        assert_eq!(new_interval.max, 3_f64);
+    }
+
+    #[test]
+    fn test_interval_expand() {
+        let i = Interval { min: 0.0, max: 0.0 };
+        let i = i.expand(1.0);
+        assert_eq!(i.min, -0.5);
+        assert_eq!(i.max, 0.5);
     }
 }

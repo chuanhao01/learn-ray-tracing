@@ -5,6 +5,27 @@ use std::{
 
 use rand::{thread_rng, Rng};
 
+use crate::helper::from_fdegree_to_fradian;
+
+pub enum Vec3Axis {
+    X,
+    Y,
+    Z,
+}
+impl Display for Vec3Axis {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::X => "X",
+                Self::Y => "Y",
+                Self::Z => "Z",
+            }
+        )
+    }
+}
+
 // Holds a 3D vector in the form of (x, y, z)
 pub struct Vec3 {
     e: [f64; 3],
@@ -32,10 +53,52 @@ impl Vec3 {
     pub fn z(&self) -> f64 {
         self.e[2]
     }
+    pub fn xyz(&self) -> [f64; 3] {
+        self.e
+    }
 
     /// Returns the vector as a tuple for easy destructuring
     pub fn tuple(&self) -> (f64, f64, f64) {
         (self.e[0], self.e[1], self.e[2])
+    }
+
+    /// Rotates the Vec around an axis by an angle (Degrees 360)
+    pub fn rotate_about_axis(&self, axis: &Vec3Axis, deg_angle: f64) -> Self {
+        let rad_angle = from_fdegree_to_fradian(deg_angle);
+        match axis {
+            Vec3Axis::X => {
+                let new_y = rad_angle.cos() * self.y() - rad_angle.sin() * self.z();
+                let new_z = rad_angle.sin() * self.y() + rad_angle.cos() * self.z();
+                Self::new(self.x(), new_y, new_z)
+            }
+            Vec3Axis::Y => {
+                let new_x = rad_angle.cos() * self.x() + rad_angle.sin() * self.z();
+                let new_z = -rad_angle.sin() * self.x() + rad_angle.cos() * self.z();
+                Self::new(new_x, self.y(), new_z)
+            }
+            Vec3Axis::Z => {
+                let new_x = rad_angle.cos() * self.x() - rad_angle.sin() * self.y();
+                let new_y = -rad_angle.sin() * self.x() + rad_angle.cos() * self.y();
+                Self::new(new_x, new_y, self.z())
+            }
+        }
+    }
+
+    /// Takes in other Vector and returns a new vector with the minimum of any x, y and z
+    pub fn retain_min(&self, other: &Self) -> Self {
+        Self::new(
+            self.x().min(other.x()),
+            self.y().min(other.y()),
+            self.z().min(other.z()),
+        )
+    }
+    /// Takes in other Vector and returns a new vector with the maximum of any x, y and z
+    pub fn retain_max(&self, other: &Self) -> Self {
+        Self::new(
+            self.x().max(other.x()),
+            self.y().max(other.y()),
+            self.z().max(other.z()),
+        )
     }
 
     /// Intermediate calculation for length of vector squared
@@ -108,6 +171,11 @@ impl Vec3 {
 }
 
 // Vec3 Traits
+impl Default for Vec3 {
+    fn default() -> Self {
+        Self { e: [0.0, 0.0, 0.0] }
+    }
+}
 impl Clone for Vec3 {
     fn clone(&self) -> Self {
         Vec3 { e: self.e }

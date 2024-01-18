@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use rand::{thread_rng, Rng};
 
-use crate::{ray::Ray, HitRecord};
+use crate::{ray::Ray, ColorTexture, HitRecord};
 
 use super::Vec3;
 
@@ -9,14 +11,13 @@ pub struct Scattered {
     pub ray: Ray,
 }
 
-pub trait Scatterable {
+pub trait Scatterable: Sync + Send {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered>;
 }
 
 pub struct Lambertain {
-    pub albedo: Vec3,
+    pub albedo: Arc<dyn ColorTexture>,
 }
-
 impl Scatterable for Lambertain {
     fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
         let scattered_direction =
@@ -27,7 +28,9 @@ impl Scatterable for Lambertain {
             scattered_direction
         };
         Some(Scattered {
-            attenuation: self.albedo.clone(),
+            attenuation: self
+                .albedo
+                .color(hit_record.u, hit_record.v, hit_record.p.clone()),
             ray: Ray {
                 origin: hit_record.p.clone(),
                 direction: scattered_direction,
@@ -37,12 +40,12 @@ impl Scatterable for Lambertain {
 }
 
 pub struct Metal {
-    albedo: Vec3,
+    albedo: Arc<dyn ColorTexture>,
     /// Ratio to scale the sampled unit circle, for the reflected ray + fuzziness
     fuzzy_factor: f64,
 }
 impl Metal {
-    pub fn new(albedo: Vec3, fuzzy_factor: f64) -> Metal {
+    pub fn new(albedo: Arc<dyn ColorTexture>, fuzzy_factor: f64) -> Metal {
         Metal {
             albedo,
             fuzzy_factor: if fuzzy_factor < 1_f64 {
@@ -62,7 +65,9 @@ impl Scatterable for Metal {
         // Check if the scattered rays are cancelled out or scattered below the surface, in that case, ray is absorbed
         if Vec3::dot(&scattered_direction, &hit_record.against_normal_unit) > 0_f64 {
             Some(Scattered {
-                attenuation: self.albedo.clone(),
+                attenuation: self
+                    .albedo
+                    .color(hit_record.u, hit_record.v, hit_record.p.clone()),
                 ray: Ray {
                     origin: hit_record.p.clone(),
                     direction: scattered_direction,
@@ -127,20 +132,44 @@ impl Scatterable for Dielectric {
     }
 }
 
-pub enum Materials {
-    Lambertain(Lambertain),
-    Metal(Metal),
-    Dielectric(Dielectric),
-    None,
+pub trait Emittable: Sync + Send {
+    /// Return the light value of the material
+    fn emit(&self) -> Vec3;
 }
 
-impl Scatterable for Materials {
-    fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
+pub struct Diffuse {
+    pub power: f64,
+}
+impl Emittable for Diffuse {
+    fn emit(&self) -> Vec3 {
+        Vec3::new(self.power, self.power, self.power)
+    }
+}
+
+pub enum Materials {
+    ScatterMaterial(Arc<dyn Scatterable>),
+    LightMaterial(Arc<dyn Emittable>),
+}
+impl Clone for Materials {
+    fn clone(&self) -> Self {
         match self {
-            Materials::Lambertain(lambertain) => lambertain.scatter(_ray, hit_record),
-            Materials::Metal(metal) => metal.scatter(_ray, hit_record),
-            Materials::Dielectric(dielectric) => dielectric.scatter(_ray, hit_record),
-            Materials::None => None,
+            Self::ScatterMaterial(scatter_material) => {
+                Self::ScatterMaterial(scatter_material.clone())
+            }
+            Self::LightMaterial(light_material) => Self::LightMaterial(light_material.clone()),
+        }
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod test {
+    use super::*;
+    use crate::{HitRecord, Ray};
+
+    pub struct TestScatterable {}
+    impl Scatterable for TestScatterable {
+        fn scatter(&self, _ray: &Ray, hit_record: &HitRecord) -> Option<Scattered> {
+            None
         }
     }
 }
