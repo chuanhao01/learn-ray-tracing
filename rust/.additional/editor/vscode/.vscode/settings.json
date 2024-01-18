@@ -15,5 +15,9 @@
     "MD024": false,
     "MD025": false,
     "MD033": false,
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+    "files.trimTrailingWhitespace": false
   }
 }

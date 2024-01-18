@@ -10,14 +10,15 @@ Here are some examples:
 
 <div align="center">
 
-![Weekend Final Render](./images/weekend.png)
-Weekend Final Render
+![Weekend Final Render](./images/weekend.png)  
+Weekend Final Render  
 
-![Week Final Render](./images/week.png)
-Week Final Render (Without perlin noise and gas demos)
+![Week Final Render](./images/week.png)  
+Week Final Render (Without perlin noise and gas demos)  
 
-![Cornell Box](./images/cornell-box.png)
-Cornell Box
+![Cornell Box](./images/cornell-box.png)  
+Cornell Box  
+
 </div>
 
 More generated images [here](./images.md)
