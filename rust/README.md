@@ -6,6 +6,8 @@ The plan is to take this implementation further as I find developing the raytrac
 This was a good reason and project to learn rust and implement something somewhat complicated too.
 Also, the fact that the project requires no API, means it is lightweight and easy build. (It also helps that it is quite easy to cross-compile pure rust in multiple platforms)
 
+This project implements the book up till `TheNextWeek` implementation. I decided not to implement some of the features in this book as I felt they did not really add much value (examples being time for the spheres and perlin noise). I also did implement more features, such as additional planar objects.  
+
 Here are some examples:
 
 <div align="center">
