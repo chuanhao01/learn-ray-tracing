@@ -16,4 +16,7 @@ Earth Demo - Showing off texture maping
 
 ![Worlds Colliding](./images/worlds-colliding.png)
 Showing off proper checkered patterns on 2 spheres
+
+![Light Demo](./images/light-demo.png)
+A simple light demo showing diffuse lights
 </div>
