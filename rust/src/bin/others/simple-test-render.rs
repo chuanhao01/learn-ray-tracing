@@ -41,7 +41,7 @@ fn test_scene() {
         0.3_f64,
     ));
     let material_glass = Arc::new(Dielectric {
-        index_of_reflectance: 1.4,
+        index_of_reflectance: 2.0,
     });
 
     let mut hittable_list = HittablesList::new();
@@ -114,19 +114,11 @@ fn test_scene() {
     //     Vec3::new(0.0, 0.75, 0.0),
     //     Arc::new(Materials::ScatterMaterial(material_metal)),
     // ))));
-    let center_quad = Arc::new(Quad::new(
-        Vec3::new(-0.5, 0.0, -1.0),
-        Vec3::new(1.0, 0.0, 0.0)
-            .rotate_about_axis(&Vec3Axis::Y, 30.0)
-            .rotate_about_axis(&Vec3Axis::X, 30.0),
-        // Vec3::new(1.0, 0.0, 0.0),
-        Vec3::new(0.0, 0.5, 0.0)
-            .rotate_about_axis(&Vec3Axis::X, 30.0)
-            .rotate_about_axis(&Vec3Axis::Y, 30.0),
-        // Vec3::new(0.0, 0.5, 0.0),
-        Materials::ScatterMaterial(material_blue),
-    ));
-    hittable_list.add(center_quad.clone());
+    hittable_list.add(Arc::new(Sphere::new(
+        Vec3::new(0.0, 0.0, -1.0),
+        0.5,
+        Materials::ScatterMaterial(material_glass),
+    )));
     hittable_list.add(Arc::new(Sphere::new(
         Vec3::new(0_f64, -100.5_f64, -1_f64),
         100_f64,
@@ -150,7 +142,7 @@ fn test_scene() {
     let camera_params = CameraParams {
         samples_per_pixel: 50,
         max_depth: 30,
-        image_width: 1000,
+        image_width: 600,
         fov: 70_f64,
         focus_angle: 0_f64,
         // focus_angle: 3_f64,
