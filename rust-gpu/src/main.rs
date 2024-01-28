@@ -1,6 +1,7 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
+use gpu_path_tracing::PathTracer;
 use {
     anyhow::{Context, Result},
     winit::{
@@ -25,8 +26,7 @@ async fn main() -> Result<()> {
         .build(&event_loop)?;
 
     let (device, queue, surface) = connect_to_gpu(&window).await?;
-
-    // TODO: initialize renderer
+    let renderer = PathTracer::new(device, queue);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
