@@ -42,7 +42,7 @@ impl PathTracer {
         render_pass.set_pipeline(&self.display_pipeline);
 
         // Draw verticies 0-2, 1 instance
-        render_pass.draw(0..3, 0..1);
+        render_pass.draw(0..6, 0..1);
 
         // Ending the render by dropping the object
         drop(render_pass);
