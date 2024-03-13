@@ -1,7 +1,10 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
-use gpu_path_tracing::PathTracer;
+use gpu_path_tracing::{
+    render::{CameraConfig, CameraParams, Uniforms},
+    PathTracer,
+};
 use {
     anyhow::{Context, Result},
     winit::{
@@ -12,13 +15,17 @@ use {
 };
 
 // Assign the appropriate window size in terms of physical pixels based on your display DPI.
-const WIDTH: u32 = 800;
-const HEIGHT: u32 = 600;
 
 #[pollster::main]
 async fn main() -> Result<()> {
+    let camera_params = CameraParams {
+        width: 1000,
+        ..Default::default()
+    };
+    let camera_config = CameraConfig::new(camera_params);
+
     let event_loop = EventLoop::new();
-    let window_size = winit::dpi::PhysicalSize::new(WIDTH, HEIGHT);
+    let window_size = winit::dpi::PhysicalSize::new(camera_config.width, camera_config.height);
     let window = WindowBuilder::new()
         .with_inner_size(window_size)
         .with_resizable(false)
@@ -26,7 +33,8 @@ async fn main() -> Result<()> {
         .build(&event_loop)?;
 
     let (device, queue, surface) = connect_to_gpu(&window).await?;
-    let renderer = PathTracer::new(device, queue);
+    let uniforms = Uniforms::from_params(camera_config);
+    let renderer = PathTracer::new(device, queue, uniforms);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
