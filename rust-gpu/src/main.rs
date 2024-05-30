@@ -15,11 +15,12 @@ use {
 };
 
 // Assign the appropriate window size in terms of physical pixels based on your display DPI.
+const WIDTH: u32 = 1000;
 
 #[pollster::main]
 async fn main() -> Result<()> {
     let camera_params = CameraParams {
-        width: 1000,
+        width: WIDTH,
         ..Default::default()
     };
     let camera_config = CameraConfig::new(camera_params);
@@ -34,7 +35,7 @@ async fn main() -> Result<()> {
 
     let (device, queue, surface) = connect_to_gpu(&window).await?;
     let uniforms = Uniforms::from_params(camera_config);
-    let renderer = PathTracer::new(device, queue, uniforms);
+    let mut renderer = PathTracer::new(device, queue, uniforms);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
