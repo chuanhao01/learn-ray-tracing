@@ -15,7 +15,7 @@ use {
 };
 
 // Assign the appropriate window size in terms of physical pixels based on your display DPI.
-const WIDTH: u32 = 1000;
+const WIDTH: u32 = 1500;
 
 #[pollster::main]
 async fn main() -> Result<()> {

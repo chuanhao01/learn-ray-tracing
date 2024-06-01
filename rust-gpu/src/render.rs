@@ -32,6 +32,19 @@ impl CameraConfig {
     }
 }
 
+// struct Lambertain {
+//     albedo: Vec3f,
+// }
+
+// enum ScatterMaterial {
+//     Lambertain(Lambertain),
+// }
+
+// struct Scene {
+//     spheres: Vec<Sphere>,
+//     materials: Vec,
+// }
+
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
 pub struct Uniforms {
@@ -251,41 +264,39 @@ fn create_display_pipeline(
             },
         ],
     });
-    (
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("display"),
-            layout: Some(
-                &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    bind_group_layouts: &[&bind_group_layout],
-                    ..Default::default()
-                }),
-            ),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                front_face: wgpu::FrontFace::Ccw,
-                polygon_mode: wgpu::PolygonMode::Fill,
+    let display_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("display"),
+        layout: Some(
+            &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                bind_group_layouts: &[&bind_group_layout],
                 ..Default::default()
-            },
-            vertex: wgpu::VertexState {
-                module: shader_module,
-                entry_point: "display_vs",
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: shader_module,
-                entry_point: "display_fs",
-                targets: &[Some(wgpu::ColorTargetState {
-                    blend: None,
-                    format: wgpu::TextureFormat::Bgra8Unorm,
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
             }),
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState::default(),
-            multiview: None,
+        ),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            front_face: wgpu::FrontFace::Ccw,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            ..Default::default()
+        },
+        vertex: wgpu::VertexState {
+            module: shader_module,
+            entry_point: "display_vs",
+            buffers: &[],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: shader_module,
+            entry_point: "display_fs",
+            targets: &[Some(wgpu::ColorTargetState {
+                blend: None,
+                format: wgpu::TextureFormat::Bgra8Unorm,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
         }),
-        bind_group_layout,
-    )
+        depth_stencil: None,
+        multisample: wgpu::MultisampleState::default(),
+        multiview: None,
+    });
+    (display_pipeline, bind_group_layout)
 }
 
 // Width and height are needed, to know how big the texture should be and stored data

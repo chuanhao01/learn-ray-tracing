@@ -28,6 +28,45 @@ fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
 }
 
+struct Rng{
+    state: u32
+}
+var<private> rng: Rng;
+
+// Taken from https://raytracing.github.io/gpu-tracing/book/MovingToTheGPU.htm
+fn init_rng(pixel: vec2u) {
+    // seed PRNG using scalar index of the pixel and current frame count
+    let seed = (pixel.x + pixel.y * uniforms.vp_width) ^ jenkins_hash(uniforms.frame_count);
+    rng.state = jenkins_hash(seed);
+}
+// A slightly modified version of the "One-at-a-Time Hash" function by Bob Jenkins.
+// See https://www.burtleburtle.net/bob/hash/doobs.html
+fn jenkins_hash(i: u32) -> u32{
+    var x = i;
+    x += x << 10u;
+    x ^= x >> 6u;
+    x += x << 3u;
+    x ^= x >> 11u;
+    x += x << 15u;
+    return x;
+}
+// The 32-bit "xor" function from Marsaglia G., "Xorshift RNGs", Section 3.
+fn xorshift32() -> u32 {
+    var x = rng.state;
+    x ^= x << 13u;
+    x ^= x >> 17u;
+    x ^= x << 5u;
+    // So that the next rand call is another rand 32u
+    rng.state = x;
+    return x;
+}
+// Returns a random float in the range [0...1]. This sets the floating point exponent to zero and
+// sets the most significant 23 bits of a random 32-bit unsigned integer as the mantissa. That
+// generates a number in the range [1, 1.9999999], which is then mapped to [0, 0.9999999] by
+// subtraction. See Ray Tracing Gems II, Section 14.3.4.
+fn rand_f32() -> f32 {
+    return bitcast<f32>(0x3f800000u | (xorshift32() >> 9u)) - 1.;
+}
 
 struct Ray {
     origin: vec3f,
@@ -46,6 +85,7 @@ struct HitRecord {
 fn no_hit_record() -> HitRecord {
     return HitRecord(0.0, vec3f(0.0), vec3f(0.0), false);
 }
+
 
 struct Sphere {
     center: vec3f,
@@ -76,20 +116,21 @@ fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
 }
 
 const SPHERE_COUNT: u32 = 2u;
+struct Scene {
+    sphere_objects: array<Sphere, SPHERE_COUNT>,
+}
 var<private> scene: Scene = Scene(array<Sphere, SPHERE_COUNT>(
     Sphere(vec3f(0.0, 0.0, -1.0), 0.5),
     Sphere(vec3f(0.0, -100.5, -1.0), 100.0),
 ));
-struct Scene {
-    sphere_objects: array<Sphere, SPHERE_COUNT>,
-}
+
 fn color_ray(ray: Ray, scene: Scene, depth: u32, t_min: f32, t_max: f32) -> vec3f {
     var t_max_so_far = t_max;
     var sphere_objects = scene.sphere_objects;
     var closest_hit = no_hit_record();
     for (var i = 0u; i < SPHERE_COUNT; i += 1u) {
         var sphere = sphere_objects[i];
-        // sphere.radius += sin(f32(uniforms.frame_count) * 0.02) * 0.2;
+        sphere.radius += sin(f32(uniforms.frame_count) * 0.02) * 0.2;
         let hit = intersect_sphere(sphere, ray, t_max_so_far);
         if within(t_min, hit.t, t_max_so_far) && hit.hit {
             closest_hit = hit;
@@ -110,12 +151,18 @@ fn sky_color(ray: Ray) -> vec3f {
 }
 @fragment
 fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+    init_rng(vec2u(pos.xy));
     let camera_origin = vec3f(0.0);
     let aspect_raio = f32(uniforms.vp_width) / f32(uniforms.vp_height);
 
+    // let offset = vec2f(
+    //     f32(uniforms.frame_count % 4u) * 0.25 - 0.5,
+    //     f32((uniforms.frame_count % 16u) / 4u) * 0.25 - 0.5
+    // );
+    // let offset = vec2f(0f, 0f);
     let offset = vec2f(
-        f32(uniforms.frame_count % 4u) * 0.25 - 0.5,
-        f32((uniforms.frame_count % 16u) / 4u) * 0.25 - 0.5
+        rand_f32() - 0.5,
+        rand_f32() - 0.5
     );
 
     // Convert gpu viewport cords to world viewport cords
@@ -138,5 +185,6 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let new_sum = old_sum + radiance_sample;
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
 
+    // return vec4f(radiance_sample, 1f);
     return vec4f(new_sum / f32(uniforms.frame_count), 1f);
 }
