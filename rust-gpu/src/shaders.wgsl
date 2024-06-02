@@ -19,6 +19,8 @@ struct Uniforms {
     frame_count: u32
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(1) var<storage, read> spheres: array<Sphere>;
+
 @group(1) @binding(0) var radiance_samples_old: texture_2d<f32>;
 @group(1) @binding(1) var radiance_samples_new: texture_storage_2d<rgba32float, write>;
 
@@ -89,7 +91,8 @@ fn no_hit_record() -> HitRecord {
 
 struct Sphere {
     center: vec3f,
-    radius: f32
+    radius: f32,
+    material_idx: u32
 }
 fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
     let v = ray.origin - sphere.center;
@@ -115,22 +118,14 @@ fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
     return HitRecord(t, p, (p - sphere.center) / sphere.radius, true);
 }
 
-const SPHERE_COUNT: u32 = 2u;
-struct Scene {
-    sphere_objects: array<Sphere, SPHERE_COUNT>,
-}
-var<private> scene: Scene = Scene(array<Sphere, SPHERE_COUNT>(
-    Sphere(vec3f(0.0, 0.0, -1.0), 0.5),
-    Sphere(vec3f(0.0, -100.5, -1.0), 100.0),
-));
+// var<private> ss: array<Sphere, 2> = array(Sphere(vec3f(0.0, -100.5, -1.0), 100.0, 0u), Sphere(vec3f(0.0, 0.0, -1.0), 0.5, 1u));
 
-fn color_ray(ray: Ray, scene: Scene, depth: u32, t_min: f32, t_max: f32) -> vec3f {
+fn color_ray(ray: Ray, depth: u32, t_min: f32, t_max: f32) -> vec3f {
     var t_max_so_far = t_max;
-    var sphere_objects = scene.sphere_objects;
     var closest_hit = no_hit_record();
-    for (var i = 0u; i < SPHERE_COUNT; i += 1u) {
-        var sphere = sphere_objects[i];
-        sphere.radius += sin(f32(uniforms.frame_count) * 0.02) * 0.2;
+    for (var i = 0u; i < arrayLength(&spheres); i += 1u) {
+        let sphere = spheres[i];
+        // sphere.radius += sin(f32(uniforms.frame_count) * 0.02) * 0.2;
         let hit = intersect_sphere(sphere, ray, t_max_so_far);
         if within(t_min, hit.t, t_max_so_far) && hit.hit {
             closest_hit = hit;
@@ -155,10 +150,6 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let camera_origin = vec3f(0.0);
     let aspect_raio = f32(uniforms.vp_width) / f32(uniforms.vp_height);
 
-    // let offset = vec2f(
-    //     f32(uniforms.frame_count % 4u) * 0.25 - 0.5,
-    //     f32((uniforms.frame_count % 16u) / 4u) * 0.25 - 0.5
-    // );
     // let offset = vec2f(0f, 0f);
     let offset = vec2f(
         rand_f32() - 0.5,
@@ -173,7 +164,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let camera_pixel_direction = vec3f(uv, -uniforms.focal_distance);
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
 
-    var radiance_sample = color_ray(camera_pixel_ray, scene, 10u, T_MIN, FLT_MAX);
+    var radiance_sample = color_ray(camera_pixel_ray, 10u, T_MIN, FLT_MAX);
 
     var old_sum: vec3f;
     if uniforms.frame_count > 1u {
@@ -185,6 +176,10 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let new_sum = old_sum + radiance_sample;
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
 
+    let a = spheres[0];
+    let b = spheres[1];
+
     // return vec4f(radiance_sample, 1f);
     return vec4f(new_sum / f32(uniforms.frame_count), 1f);
+    // return vec4f(spheres[1].center, 1f);
 }

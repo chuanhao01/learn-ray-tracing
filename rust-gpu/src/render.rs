@@ -1,5 +1,6 @@
 use crate::{gpu_buffer, Vec3f};
 use bytemuck::{Pod, Zeroable};
+use wgpu::util::DeviceExt;
 pub struct CameraParams {
     pub width: u32,
     pub aspect_raio: f32,
@@ -109,6 +110,26 @@ impl Scene {
         self.materials.push(material);
         self.materials.len() as u32
     }
+
+    pub fn get_spheres_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
+        // let spheres_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+        //     label: Some("Spheres Stroage Buffer"),
+        //     mapped_at_creation: true,
+        //     size: (std::mem::size_of::<gpu_buffer::Sphere>() * self.spheres.len()) as u64,
+        //     usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        // });
+        // spheres_buffer
+        //     .slice(..)
+        //     .get_mapped_range_mut()
+        //     .copy_from_slice(bytemuck::cast_slice(&self.spheres));
+        // let a: &[u8] = bytemuck::cast_slice(self.spheres.as_slice());
+        // println!("{:?}", a);
+        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            contents: bytemuck::cast_slice(self.spheres.as_slice()),
+            label: Some("Sphere Storage Buffer"),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        })
+    }
 }
 
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -159,18 +180,14 @@ impl PathTracer {
             scene.add_material(Material::ScatterMaterial(Box::new(lambertain_green)));
         let mat_blue_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_blue)));
 
+        let test_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.5, 0.0, 0.5), 1.0, mat_ground_id);
         let floor_sphere =
             gpu_buffer::Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0, mat_ground_id);
         let left_sphere = gpu_buffer::Sphere::new(Vec3f::new(-1.0, 0.0, -1.0), 0.5, mat_red_id);
-        let middle_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.0, 0.0, 1.0), 0.5, mat_green_id);
-        let right_sphere = gpu_buffer::Sphere::new(Vec3f::new(1.0, 0.0, 1.0), 0.5, mat_blue_id);
+        let middle_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5, mat_green_id);
+        let right_sphere = gpu_buffer::Sphere::new(Vec3f::new(1.0, 0.0, -1.0), 0.5, mat_blue_id);
 
-        scene.spheres.append(&mut vec![
-            floor_sphere,
-            left_sphere,
-            middle_sphere,
-            right_sphere,
-        ]);
+        scene.spheres = vec![floor_sphere, left_sphere, middle_sphere, right_sphere];
         scene
     }
     pub fn new(device: wgpu::Device, queue: wgpu::Queue, uniforms: Uniforms) -> Self {
@@ -188,17 +205,21 @@ impl PathTracer {
             mapped_at_creation: false,
         });
 
+        let scene = Self::generate_scene();
+
         let radiance_samples =
             create_sample_textures(&device, uniforms.vp_width, uniforms.vp_height);
-        let data_bind_group =
-            Self::create_data_bind_group(&device, data_bind_group_layout, &uniform_buffer);
+        let data_bind_group = Self::create_data_bind_group(
+            &device,
+            data_bind_group_layout,
+            &uniform_buffer,
+            &scene.get_spheres_buffer(&device),
+        );
         let radiance_bind_group = Self::create_radiance_bind_group(
             &device,
             radiance_bind_group_layout,
             &radiance_samples,
         );
-
-        let scene = Self::generate_scene();
 
         Self {
             device,
@@ -306,18 +327,29 @@ impl PathTracer {
         device: &wgpu::Device,
         layout: wgpu::BindGroupLayout,
         uniform_buffer: &wgpu::Buffer,
+        spheres_buffer: &wgpu::Buffer,
     ) -> wgpu::BindGroup {
         device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                    buffer: uniform_buffer,
-                    offset: 0,
-                    size: None,
-                }),
-            }],
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: uniform_buffer,
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: spheres_buffer,
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+            ],
         })
     }
 }
@@ -365,16 +397,28 @@ fn create_display_pipeline(
     let data_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
         });
     let display_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("display"),
