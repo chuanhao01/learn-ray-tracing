@@ -19,8 +19,8 @@ struct Uniforms {
     frame_count: u32
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-@group(0) @binding(1) var radiance_samples_old: texture_2d<f32>;
-@group(0) @binding(2) var radiance_samples_new: texture_storage_2d<rgba32float, write>;
+@group(1) @binding(0) var radiance_samples_old: texture_2d<f32>;
+@group(1) @binding(1) var radiance_samples_new: texture_storage_2d<rgba32float, write>;
 
 const T_MIN: f32 = 0.001;
 const FLT_MAX: f32 = 3.40282346638528859812e+38;

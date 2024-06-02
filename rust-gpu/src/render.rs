@@ -140,7 +140,8 @@ pub struct PathTracer {
     scene: Scene,
 
     display_pipeline: wgpu::RenderPipeline,
-    display_bind_group: [wgpu::BindGroup; 2],
+    data_bind_group: wgpu::BindGroup,
+    radiance_bind_group: [wgpu::BindGroup; 2],
 }
 
 impl PathTracer {
@@ -177,7 +178,8 @@ impl PathTracer {
 
         // TODO: init GPU resources
         let shader_module = compile_shader_module(&device);
-        let (display_pipeline, display_layout) = create_display_pipeline(&device, &shader_module);
+        let (display_pipeline, [data_bind_group_layout, radiance_bind_group_layout]) =
+            create_display_pipeline(&device, &shader_module);
 
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("uniforms"),
@@ -188,11 +190,12 @@ impl PathTracer {
 
         let radiance_samples =
             create_sample_textures(&device, uniforms.vp_width, uniforms.vp_height);
-        let display_bind_group = Self::create_display_bind_group(
+        let data_bind_group =
+            Self::create_data_bind_group(&device, data_bind_group_layout, &uniform_buffer);
+        let radiance_bind_group = Self::create_radiance_bind_group(
             &device,
-            display_layout,
+            radiance_bind_group_layout,
             &radiance_samples,
-            &uniform_buffer,
         );
 
         let scene = Self::generate_scene();
@@ -207,7 +210,8 @@ impl PathTracer {
             scene,
 
             display_pipeline,
-            display_bind_group,
+            data_bind_group,
+            radiance_bind_group,
         }
     }
     pub fn render_frame(&mut self, target: &wgpu::TextureView) {
@@ -236,9 +240,10 @@ impl PathTracer {
         });
 
         render_pass.set_pipeline(&self.display_pipeline);
+        render_pass.set_bind_group(0, &self.data_bind_group, &[]);
         render_pass.set_bind_group(
-            0,
-            &self.display_bind_group[(self.uniforms.frame_count % 2) as usize],
+            1,
+            &self.radiance_bind_group[(self.uniforms.frame_count % 2) as usize],
             &[],
         );
 
@@ -252,11 +257,10 @@ impl PathTracer {
         self.queue.submit(Some(command_buffer));
     }
 
-    fn create_display_bind_group(
+    fn create_radiance_bind_group(
         device: &wgpu::Device,
         layout: wgpu::BindGroupLayout,
         textures: &[wgpu::Texture; 2],
-        uniform_buffer: &wgpu::Buffer,
     ) -> [wgpu::BindGroup; 2] {
         let views = [
             textures[0].create_view(&wgpu::TextureViewDescriptor {
@@ -273,18 +277,10 @@ impl PathTracer {
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                            buffer: uniform_buffer,
-                            offset: 0,
-                            size: None,
-                        }),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
                         resource: wgpu::BindingResource::TextureView(&views[0]),
                     },
                     wgpu::BindGroupEntry {
-                        binding: 2,
+                        binding: 1,
                         resource: wgpu::BindingResource::TextureView(&views[1]),
                     },
                 ],
@@ -295,23 +291,34 @@ impl PathTracer {
                 entries: &[
                     wgpu::BindGroupEntry {
                         binding: 0,
-                        resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                            buffer: uniform_buffer,
-                            offset: 0,
-                            size: None,
-                        }),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
                         resource: wgpu::BindingResource::TextureView(&views[1]),
                     },
                     wgpu::BindGroupEntry {
-                        binding: 2,
+                        binding: 1,
                         resource: wgpu::BindingResource::TextureView(&views[0]),
                     },
                 ],
             }),
         ]
+    }
+
+    fn create_data_bind_group(
+        device: &wgpu::Device,
+        layout: wgpu::BindGroupLayout,
+        uniform_buffer: &wgpu::Buffer,
+    ) -> wgpu::BindGroup {
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: uniform_buffer,
+                    offset: 0,
+                    size: None,
+                }),
+            }],
+        })
     }
 }
 
@@ -328,11 +335,37 @@ fn compile_shader_module(device: &wgpu::Device) -> wgpu::ShaderModule {
 fn create_display_pipeline(
     device: &wgpu::Device,
     shader_module: &wgpu::ShaderModule,
-) -> (wgpu::RenderPipeline, wgpu::BindGroupLayout) {
-    let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: None,
-        entries: &[
-            wgpu::BindGroupLayoutEntry {
+) -> (wgpu::RenderPipeline, [wgpu::BindGroupLayout; 2]) {
+    let radiance_bind_group_layout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::StorageTexture {
+                        access: wgpu::StorageTextureAccess::WriteOnly,
+                        format: wgpu::TextureFormat::Rgba32Float,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                    },
+                    count: None,
+                },
+            ],
+        });
+    let data_bind_group_layout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
@@ -341,34 +374,13 @@ fn create_display_pipeline(
                     min_binding_size: None,
                 },
                 count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 1,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Texture {
-                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    multisampled: false,
-                },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 2,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::StorageTexture {
-                    access: wgpu::StorageTextureAccess::WriteOnly,
-                    format: wgpu::TextureFormat::Rgba32Float,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                },
-                count: None,
-            },
-        ],
-    });
+            }],
+        });
     let display_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("display"),
         layout: Some(
             &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                bind_group_layouts: &[&bind_group_layout],
+                bind_group_layouts: &[&data_bind_group_layout, &radiance_bind_group_layout],
                 ..Default::default()
             }),
         ),
@@ -396,7 +408,10 @@ fn create_display_pipeline(
         multisample: wgpu::MultisampleState::default(),
         multiview: None,
     });
-    (display_pipeline, bind_group_layout)
+    (
+        display_pipeline,
+        [data_bind_group_layout, radiance_bind_group_layout],
+    )
 }
 
 // Width and height are needed, to know how big the texture should be and stored data
