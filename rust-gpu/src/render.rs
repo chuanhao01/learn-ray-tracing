@@ -1,3 +1,4 @@
+use crate::{gpu_buffer, Vec3f};
 use bytemuck::{Pod, Zeroable};
 pub struct CameraParams {
     pub width: u32,
@@ -32,18 +33,83 @@ impl CameraConfig {
     }
 }
 
-// struct Lambertain {
-//     albedo: Vec3f,
-// }
+struct Lambertain {
+    albedo: Vec3f,
+    t: u32,
+}
+impl Lambertain {
+    fn new(albedo: Vec3f) -> Self {
+        Self {
+            albedo,
+            t: ScatterT::Lambertain as u32,
+        }
+    }
+}
+impl ScatterMaterial for Lambertain {
+    fn get_t(&self) -> ScatterT {
+        ScatterT::Lambertain
+    }
+}
 
-// enum ScatterMaterial {
-//     Lambertain(Lambertain),
-// }
+trait ScatterMaterial {
+    fn get_t(&self) -> ScatterT;
+}
+enum ScatterT {
+    Lambertain,
+}
 
-// struct Scene {
-//     spheres: Vec<Sphere>,
-//     materials: Vec,
-// }
+struct Diffuse {
+    power: f32,
+}
+impl Diffuse {
+    fn new(power: f32) -> Self {
+        Self { power }
+    }
+}
+impl EmitMaterial for Diffuse {
+    fn get_t(&self) -> EmitT {
+        EmitT::Diffuse
+    }
+}
+
+trait EmitMaterial {
+    fn get_t(&self) -> EmitT;
+}
+enum EmitT {
+    Diffuse,
+}
+
+enum Material {
+    ScatterMaterial(Box<dyn ScatterMaterial>),
+    EmitMaterial(Box<dyn EmitMaterial>),
+}
+impl Material {
+    fn get_t(&self) -> u32 {
+        match self {
+            Self::ScatterMaterial(_) => 0,
+            Self::EmitMaterial(_) => 1,
+        }
+    }
+}
+
+struct Scene {
+    pub spheres: Vec<gpu_buffer::Sphere>,
+    materials: Vec<Material>,
+}
+impl Scene {
+    pub fn new() -> Self {
+        Self {
+            spheres: Vec::new(),
+            materials: Vec::new(),
+        }
+    }
+    /// Use to add materials to be used by objects in the scene
+    /// Returns idx to be used on objects
+    pub fn add_material(&mut self, material: Material) -> u32 {
+        self.materials.push(material);
+        self.materials.len() as u32
+    }
+}
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
@@ -71,11 +137,41 @@ pub struct PathTracer {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
 
+    scene: Scene,
+
     display_pipeline: wgpu::RenderPipeline,
     display_bind_group: [wgpu::BindGroup; 2],
 }
 
 impl PathTracer {
+    fn generate_scene() -> Scene {
+        let mut scene = Scene::new();
+        let lambertain_ground = Lambertain::new(Vec3f::new(0.8, 0.8, 0.0));
+        let lambertain_red = Lambertain::new(Vec3f::new(1.0, 0.0, 0.0));
+        let lambertain_green = Lambertain::new(Vec3f::new(0.0, 1.0, 0.0));
+        let lambertain_blue = Lambertain::new(Vec3f::new(0.0, 0.0, 1.0));
+
+        let mat_ground_id =
+            scene.add_material(Material::ScatterMaterial(Box::new(lambertain_ground)));
+        let mat_red_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_red)));
+        let mat_green_id =
+            scene.add_material(Material::ScatterMaterial(Box::new(lambertain_green)));
+        let mat_blue_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_blue)));
+
+        let floor_sphere =
+            gpu_buffer::Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0, mat_ground_id);
+        let left_sphere = gpu_buffer::Sphere::new(Vec3f::new(-1.0, 0.0, -1.0), 0.5, mat_red_id);
+        let middle_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.0, 0.0, 1.0), 0.5, mat_green_id);
+        let right_sphere = gpu_buffer::Sphere::new(Vec3f::new(1.0, 0.0, 1.0), 0.5, mat_blue_id);
+
+        scene.spheres.append(&mut vec![
+            floor_sphere,
+            left_sphere,
+            middle_sphere,
+            right_sphere,
+        ]);
+        scene
+    }
     pub fn new(device: wgpu::Device, queue: wgpu::Queue, uniforms: Uniforms) -> Self {
         device.on_uncaptured_error(Box::new(|error| panic!("Aborting due to error, {}", error)));
 
@@ -99,12 +195,16 @@ impl PathTracer {
             &uniform_buffer,
         );
 
+        let scene = Self::generate_scene();
+
         Self {
             device,
             queue,
 
             uniforms,
             uniform_buffer,
+
+            scene,
 
             display_pipeline,
             display_bind_group,

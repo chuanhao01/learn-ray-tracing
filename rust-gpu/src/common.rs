@@ -9,7 +9,7 @@ pub struct Vec3f {
     pub z: f32,
 }
 impl Vec3f {
-    fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3f { x, y, z }
     }
 }
