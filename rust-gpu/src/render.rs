@@ -36,24 +36,24 @@ impl CameraConfig {
 
 struct Lambertain {
     albedo: Vec3f,
-    t: u32,
 }
 impl Lambertain {
     fn new(albedo: Vec3f) -> Self {
-        Self {
-            albedo,
-            t: ScatterT::Lambertain as u32,
-        }
+        Self { albedo }
     }
 }
 impl ScatterMaterial for Lambertain {
     fn get_t(&self) -> ScatterT {
         ScatterT::Lambertain
     }
+    fn to_gpu_material(&self) -> gpu_buffer::ScatterMaterial {
+        gpu_buffer::ScatterMaterial::new(self.albedo, self.get_t() as u32, 0f32, 0f32)
+    }
 }
 
 trait ScatterMaterial {
     fn get_t(&self) -> ScatterT;
+    fn to_gpu_material(&self) -> gpu_buffer::ScatterMaterial;
 }
 enum ScatterT {
     Lambertain,
@@ -71,10 +71,14 @@ impl EmitMaterial for Diffuse {
     fn get_t(&self) -> EmitT {
         EmitT::Diffuse
     }
+    fn to_gpu_material(&self) -> gpu_buffer::EmitMaterial {
+        gpu_buffer::EmitMaterial::new(self.get_t() as u32, self.power)
+    }
 }
 
 trait EmitMaterial {
     fn get_t(&self) -> EmitT;
+    fn to_gpu_material(&self) -> gpu_buffer::EmitMaterial;
 }
 enum EmitT {
     Diffuse,
@@ -108,27 +112,60 @@ impl Scene {
     /// Returns idx to be used on objects
     pub fn add_material(&mut self, material: Material) -> u32 {
         self.materials.push(material);
-        self.materials.len() as u32
+        self.materials.len() as u32 - 1
     }
 
     pub fn get_spheres_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
-        // let spheres_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-        //     label: Some("Spheres Stroage Buffer"),
-        //     mapped_at_creation: true,
-        //     size: (std::mem::size_of::<gpu_buffer::Sphere>() * self.spheres.len()) as u64,
-        //     usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        // });
-        // spheres_buffer
-        //     .slice(..)
-        //     .get_mapped_range_mut()
-        //     .copy_from_slice(bytemuck::cast_slice(&self.spheres));
-        // let a: &[u8] = bytemuck::cast_slice(self.spheres.as_slice());
-        // println!("{:?}", a);
         device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             contents: bytemuck::cast_slice(self.spheres.as_slice()),
             label: Some("Sphere Storage Buffer"),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
         })
+    }
+
+    // Returns, [materials_buffer, scatter_material_buffer, emit_material_buffer]
+    pub fn get_materials_buffer(&self, device: &wgpu::Device) -> [wgpu::Buffer; 3] {
+        let mut gpu_materials = Vec::new();
+        let mut gpu_scatter_materials = Vec::new();
+        let mut gpu_emit_materials = Vec::new();
+
+        for material in &self.materials {
+            match material {
+                Material::ScatterMaterial(scatter_material) => {
+                    gpu_scatter_materials.push(scatter_material.to_gpu_material());
+                    gpu_materials.push(gpu_buffer::Material::new(
+                        material.get_t(),
+                        gpu_scatter_materials.len() as u32 - 1,
+                        0,
+                    ));
+                }
+                Material::EmitMaterial(emit_material) => {
+                    gpu_emit_materials.push(emit_material.to_gpu_material());
+                    gpu_materials.push(gpu_buffer::Material::new(
+                        material.get_t(),
+                        gpu_emit_materials.len() as u32 - 1,
+                        0,
+                    ));
+                }
+            }
+        }
+        [
+            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                contents: bytemuck::cast_slice(gpu_materials.as_slice()),
+                label: Some("Materials Storage Buffer"),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            }),
+            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                contents: bytemuck::cast_slice(gpu_scatter_materials.as_slice()),
+                label: Some("Scatter Materials Storage Buffer"),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            }),
+            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                contents: bytemuck::cast_slice(gpu_emit_materials.as_slice()),
+                label: Some("Emit Materials Storage Buffer"),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            }),
+        ]
     }
 }
 
@@ -173,14 +210,17 @@ impl PathTracer {
         let lambertain_green = Lambertain::new(Vec3f::new(0.0, 1.0, 0.0));
         let lambertain_blue = Lambertain::new(Vec3f::new(0.0, 0.0, 1.0));
 
+        // So the buffer is not empty
+        let diffuse = Diffuse::new(5f32);
+
         let mat_ground_id =
             scene.add_material(Material::ScatterMaterial(Box::new(lambertain_ground)));
         let mat_red_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_red)));
         let mat_green_id =
             scene.add_material(Material::ScatterMaterial(Box::new(lambertain_green)));
         let mat_blue_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_blue)));
+        let diffuse_id = scene.add_material(Material::EmitMaterial(Box::new(diffuse)));
 
-        let test_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.5, 0.0, 0.5), 1.0, mat_ground_id);
         let floor_sphere =
             gpu_buffer::Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0, mat_ground_id);
         let left_sphere = gpu_buffer::Sphere::new(Vec3f::new(-1.0, 0.0, -1.0), 0.5, mat_red_id);
@@ -214,6 +254,7 @@ impl PathTracer {
             data_bind_group_layout,
             &uniform_buffer,
             &scene.get_spheres_buffer(&device),
+            &scene.get_materials_buffer(&device),
         );
         let radiance_bind_group = Self::create_radiance_bind_group(
             &device,
@@ -328,6 +369,7 @@ impl PathTracer {
         layout: wgpu::BindGroupLayout,
         uniform_buffer: &wgpu::Buffer,
         spheres_buffer: &wgpu::Buffer,
+        materials_buffer: &[wgpu::Buffer; 3],
     ) -> wgpu::BindGroup {
         device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
@@ -345,6 +387,30 @@ impl PathTracer {
                     binding: 1,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
                         buffer: spheres_buffer,
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: &materials_buffer[0],
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: &materials_buffer[1],
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: &materials_buffer[2],
                         offset: 0,
                         size: None,
                     }),
@@ -410,6 +476,36 @@ fn create_display_pipeline(
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 3,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 4,
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Storage { read_only: true },

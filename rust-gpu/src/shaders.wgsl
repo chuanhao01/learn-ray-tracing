@@ -20,15 +20,27 @@ struct Uniforms {
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 @group(0) @binding(1) var<storage, read> spheres: array<Sphere>;
+@group(0) @binding(2) var<storage, read> materials: array<Material>;
+@group(0) @binding(3) var<storage, read> scatter_materials: array<ScatterMaterial>;
+@group(0) @binding(4) var<storage, read> emit_materials: array<EmitMaterial>;
 
 @group(1) @binding(0) var radiance_samples_old: texture_2d<f32>;
 @group(1) @binding(1) var radiance_samples_new: texture_storage_2d<rgba32float, write>;
 
 const T_MIN: f32 = 0.001;
 const FLT_MAX: f32 = 3.40282346638528859812e+38;
+const PI = 3.1415927f;
+const FRAC_1_PI = 0.31830987f;
+const FRAC_PI_2 = 1.5707964f;
+const NEAR_ZERO = 0.000000001f;
+
 fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
 }
+fn near_zero(v: vec3f) -> bool{
+    return v.x < NEAR_ZERO && v.y < NEAR_ZERO && v.z < NEAR_ZERO;
+}
+
 
 struct Rng{
     state: u32
@@ -69,11 +81,28 @@ fn xorshift32() -> u32 {
 fn rand_f32() -> f32 {
     return bitcast<f32>(0x3f800000u | (xorshift32() >> 9u)) - 1.;
 }
+fn rand_in_hemisphere() -> vec3f{
+    let r1 = rand_f32();
+    let r2 = rand_f32();
+
+    let phi = 2f * PI * r1;
+    let sinTheta = sqrt(1f - r2 * r2);
+
+    let x = cos(phi) * sinTheta;
+    let y = sin(phi) * sinTheta;
+    let z = r2;
+
+    return vec3f(x, y, z);
+}
 
 struct Ray {
     origin: vec3f,
     direction: vec3f
 }
+fn no_ray() -> Ray{
+    Ray(vec3f(0f), vec3f(0f));
+}
+
 fn at(ray: Ray, t: f32) -> vec3f {
     return ray.origin + t * ray.direction;
 }
@@ -83,9 +112,27 @@ struct HitRecord {
     p: vec3f,
     against_normal_unit: vec3f,
     hit: bool,
+    material: Material,
 }
 fn no_hit_record() -> HitRecord {
-    return HitRecord(0.0, vec3f(0.0), vec3f(0.0), false);
+    return HitRecord(0.0, vec3f(0.0), vec3f(0.0), false, Material(0u, 0u, 0u));
+}
+
+struct Material{
+    t: u32,
+    sactter_idx: u32,
+    emit_idx: u32
+}
+// Align 16
+struct ScatterMaterial{
+    albedo: vec3f,
+    t: u32,
+    fuzzy_factor: f32,
+    index_of_reflectance: f32
+}
+struct EmitMaterial {
+    t: u32,
+    power: f32
 }
 
 
@@ -115,12 +162,23 @@ fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
     }
 
     let p = at(ray, t);
-    return HitRecord(t, p, (p - sphere.center) / sphere.radius, true);
+    return HitRecord(t, p, (p - sphere.center) / sphere.radius, true, materials[sphere.material_idx]);
 }
 
-// var<private> ss: array<Sphere, 2> = array(Sphere(vec3f(0.0, -100.5, -1.0), 100.0, 0u), Sphere(vec3f(0.0, 0.0, -1.0), 0.5, 1u));
+struct LightRay{
+    ray: Ray,
+    attenuation: vec3f,
+    done: bool,
+}
+fn scatter_lambertain(hit: HitRecord, attenuation: vec3f, lambertain: ScatterMaterial) -> LightRay{
+    var scattered_direction = hit.against_normal_unit + rand_in_hemisphere();
+    if near_zero(scattered_direction) {
+        scattered_direction = hit.against_normal_unit;
+    }
+    return LightRay(Ray(hit.p, scattered_direction), attenuation * lambertain.albedo, false);
+}
 
-fn color_ray(ray: Ray, depth: u32, t_min: f32, t_max: f32) -> vec3f {
+fn color_ray(ray: Ray, attenuation: vec3f, t_min: f32, t_max: f32) -> LightRay {
     var t_max_so_far = t_max;
     var closest_hit = no_hit_record();
     for (var i = 0u; i < arrayLength(&spheres); i += 1u) {
@@ -136,13 +194,20 @@ fn color_ray(ray: Ray, depth: u32, t_min: f32, t_max: f32) -> vec3f {
     if !closest_hit.hit {
         return sky_color(ray);
     }
-    return vec3f(0.5 * closest_hit.against_normal_unit + vec3(0.5));
+
+    if closest_hit.material.t == 0u {
+        let scatter_material = scatter_materials[closest_hit.material.sactter_idx];
+        if scatter_material.t == 0u{
+            return scatter_lambertain(closest_hit, attenuation, scatter_material);
+        }
+    }
+    return LightRay(no_ray(), vec3f(1.0, 0.4117647058823529, 0.7058823529411765), true);
 }
 
 
-fn sky_color(ray: Ray) -> vec3f {
+fn sky_color(ray: Ray) -> LightRay {
     let a = 0.5 * (normalize(ray.direction).y + 1.0);
-    return (1.0 - a) * vec3f(1.0) + a * vec3f(0.0, 0.0, 1.0);
+    return LightRay(Ray(vec3f(0f), vec3f(0f)), (1.0 - a) * vec3f(1.0) + a * vec3f(0.0, 0.0, 1.0), true);
 }
 @fragment
 fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
@@ -164,7 +229,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let camera_pixel_direction = vec3f(uv, -uniforms.focal_distance);
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
 
-    var radiance_sample = color_ray(camera_pixel_ray, 10u, T_MIN, FLT_MAX);
+    var radiance_sample = color_ray(camera_pixel_ray, vec3f(1f), T_MIN, FLT_MAX);
 
     var old_sum: vec3f;
     if uniforms.frame_count > 1u {
@@ -173,11 +238,8 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         old_sum = vec3f(0f);
     }
 
-    let new_sum = old_sum + radiance_sample;
+    let new_sum = old_sum + radiance_sample.attenuation;
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
-
-    let a = spheres[0];
-    let b = spheres[1];
 
     // return vec4f(radiance_sample, 1f);
     return vec4f(new_sum / f32(uniforms.frame_count), 1f);
