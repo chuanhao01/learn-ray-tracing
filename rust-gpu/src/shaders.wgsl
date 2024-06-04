@@ -13,10 +13,13 @@ fn display_vs(@builtin(vertex_index) vid: u32) -> @builtin(position) vec4f {
 }
 
 struct Uniforms {
+    look_at: vec3f,
+    theta: f32, // In Degrees
+    look_from: vec3f,
+    focal_distance: f32,
+    v_up: vec3f,
     vp_width: u32,
     vp_height: u32,
-    focal_distance: f32,
-    theta: f32, // In Degrees
     frame_count: u32
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -34,7 +37,7 @@ const PI = 3.1415927f;
 const FRAC_1_PI = 0.31830987f;
 const FRAC_PI_2 = 1.5707964f;
 const NEAR_ZERO = 0.000000001f;
-const DEPTH = 15u;
+const DEPTH = 20u;
 
 fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
@@ -213,7 +216,7 @@ fn sky_color(ray: Ray) -> LightRay {
 @fragment
 fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     init_rng(vec2u(pos.xy));
-    let camera_origin = vec3f(0.0);
+    let camera_origin = uniforms.look_from;
     let aspect_raio = f32(uniforms.vp_width) / f32(uniforms.vp_height);
 
     // let offset = vec2f(0f, 0f);
@@ -222,20 +225,25 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         rand_f32() - 0.5
     );
 
-    // Convert gpu viewport cords to world viewport cords
-    // Using height as [-1, 1] then scaling the width to aspect ratio
-    // var uv = (pos.xy + offset) / vec2f(f32(uniforms.vp_width - 1u), f32(uniforms.vp_height - 1u));
-    // uv = (2.0 * uv - vec2f(1.0)) * vec2f(aspect_raio, -1.0);
+    let _w = uniforms.look_at - uniforms.look_from;
+    // let _w = uniforms.look_from - uniforms.look_at;
+    let focal_distance = length(_w);
 
-    let h = uniforms.focal_distance * tan(radians(uniforms.theta / 2f));
-    let w = aspect_raio * h;
-    let delta_x = w / f32(uniforms.vp_width);
-    let delta_y = -h / f32(uniforms.vp_height);
-    let starting = vec2f(-w/2f, h/2f) + vec2f(delta_x/2f, delta_y/2f);
-    var uv = starting + vec2f(f32(pos.x) * delta_x, f32(pos.y) * delta_y);
-    // uv += offset;
+    let w = normalize(_w);
+    let u = normalize(cross(uniforms.v_up, w));
+    let v = cross(w, u);
 
-    let camera_pixel_direction = vec3f(uv, -uniforms.focal_distance);
+
+    let height = focal_distance * tan(radians(uniforms.theta / 2f));
+    let width = aspect_raio * height;
+    let delta_x = width / f32(uniforms.vp_width);
+    let delta_y = -height / f32(uniforms.vp_height);
+    let top_left = camera_origin.xy + vec2f(-width/2f, height/2f) + vec2f(delta_x/2f, delta_y/2f);
+    // Add a offset from unit_square to the x, y * delta
+    // var uv = top_left + vec2f((f32(pos.x) + offset.x) * delta_x, (f32(pos.y) + offset.y) * delta_y);
+    var uv = top_left + vec2f((f32(pos.x) + offset.x) * delta_x) * u.xy + vec2f((f32(pos.y) + offset.y) * delta_y) * v.xy;
+
+    let camera_pixel_direction = vec3f(uv, -focal_distance);
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
 
     var throughput = vec3f(1f);

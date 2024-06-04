@@ -1,7 +1,7 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
-use gpu_path_tracing::{InitConfig, InitParam, PathTracer};
+use gpu_path_tracing::{InitConfig, InitParam, PathTracer, Vec3f};
 use {
     anyhow::{Context, Result},
     winit::{
@@ -19,6 +19,8 @@ async fn main() -> Result<()> {
     let init_configs = InitConfig::new(InitParam {
         vp_width: WIDTH,
         camera_theta: 120f32,
+        // look_from: Vec3f::new(-3.0, 0.0, 2.0),
+        // look_at: Vec3f::new(3.0, 0.0, -1.0),
         ..Default::default()
     });
     let event_loop = EventLoop::new();
