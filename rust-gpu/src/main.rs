@@ -1,10 +1,7 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
-use gpu_path_tracing::{
-    render::{CameraConfig, CameraParams, Uniforms},
-    PathTracer,
-};
+use gpu_path_tracing::{InitConfig, InitParam, PathTracer};
 use {
     anyhow::{Context, Result},
     winit::{
@@ -19,14 +16,13 @@ const WIDTH: u32 = 1500;
 
 #[pollster::main]
 async fn main() -> Result<()> {
-    let camera_params = CameraParams {
-        width: WIDTH,
+    let init_configs = InitConfig::new(InitParam {
+        vp_width: WIDTH,
+        camera_theta: 120f32,
         ..Default::default()
-    };
-    let camera_config = CameraConfig::new(camera_params);
-
+    });
     let event_loop = EventLoop::new();
-    let window_size = winit::dpi::PhysicalSize::new(camera_config.width, camera_config.height);
+    let window_size = winit::dpi::PhysicalSize::new(init_configs.vp_width, init_configs.vp_height);
     let window = WindowBuilder::new()
         .with_inner_size(window_size)
         .with_resizable(false)
@@ -34,8 +30,7 @@ async fn main() -> Result<()> {
         .build(&event_loop)?;
 
     let (device, queue, surface) = connect_to_gpu(&window).await?;
-    let uniforms = Uniforms::from_params(camera_config);
-    let mut renderer = PathTracer::new(device, queue, uniforms);
+    let mut renderer = PathTracer::new(device, queue, init_configs);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;

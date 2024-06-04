@@ -1,38 +1,6 @@
-use crate::{gpu_buffer, Vec3f};
+use crate::{gpu_buffer, InitConfig, Vec3f};
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
-pub struct CameraParams {
-    pub width: u32,
-    pub aspect_raio: f32,
-    pub focal_distance: f32,
-}
-impl Default for CameraParams {
-    fn default() -> Self {
-        Self {
-            width: 800,
-            aspect_raio: 16.0 / 9.0,
-            focal_distance: 1.0,
-        }
-    }
-}
-
-#[allow(dead_code)]
-pub struct CameraConfig {
-    pub width: u32,
-    pub height: u32,
-    pub aspect_raio: f32,
-    pub focal_distance: f32,
-}
-impl CameraConfig {
-    pub fn new(camera_params: CameraParams) -> Self {
-        Self {
-            width: camera_params.width,
-            height: (camera_params.width as f32 / camera_params.aspect_raio) as u32,
-            aspect_raio: camera_params.aspect_raio,
-            focal_distance: camera_params.focal_distance,
-        }
-    }
-}
 
 struct Lambertain {
     albedo: Vec3f,
@@ -175,14 +143,16 @@ pub struct Uniforms {
     pub vp_width: u32,
     pub vp_height: u32,
     pub focal_distance: f32,
+    pub theta: f32,
     pub frame_count: u32,
 }
 impl Uniforms {
-    pub fn from_params(camera_params: CameraConfig) -> Self {
+    pub fn from_init_configs(init_configs: InitConfig) -> Self {
         Self {
-            vp_width: camera_params.width,
-            vp_height: camera_params.height,
-            focal_distance: camera_params.focal_distance,
+            vp_width: init_configs.vp_width,
+            vp_height: init_configs.vp_height,
+            focal_distance: init_configs.camera_focal_distance,
+            theta: init_configs.camera_theta,
             frame_count: 0,
         }
     }
@@ -230,7 +200,7 @@ impl PathTracer {
         scene.spheres = vec![floor_sphere, left_sphere, middle_sphere, right_sphere];
         scene
     }
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, uniforms: Uniforms) -> Self {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, init_configs: InitConfig) -> Self {
         device.on_uncaptured_error(Box::new(|error| panic!("Aborting due to error, {}", error)));
 
         // TODO: init GPU resources
@@ -238,6 +208,7 @@ impl PathTracer {
         let (display_pipeline, [data_bind_group_layout, radiance_bind_group_layout]) =
             create_display_pipeline(&device, &shader_module);
 
+        let uniforms = Uniforms::from_init_configs(init_configs);
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("uniforms"),
             size: std::mem::size_of::<Uniforms>() as u64,

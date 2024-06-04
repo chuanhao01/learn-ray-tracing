@@ -16,6 +16,7 @@ struct Uniforms {
     vp_width: u32,
     vp_height: u32,
     focal_distance: f32,
+    theta: f32, // In Degrees
     frame_count: u32
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -223,8 +224,16 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     // Convert gpu viewport cords to world viewport cords
     // Using height as [-1, 1] then scaling the width to aspect ratio
-    var uv = (pos.xy + offset) / vec2f(f32(uniforms.vp_width - 1u), f32(uniforms.vp_height - 1u));
-    uv = (2.0 * uv - vec2f(1.0)) * vec2f(aspect_raio, -1.0);
+    // var uv = (pos.xy + offset) / vec2f(f32(uniforms.vp_width - 1u), f32(uniforms.vp_height - 1u));
+    // uv = (2.0 * uv - vec2f(1.0)) * vec2f(aspect_raio, -1.0);
+
+    let h = uniforms.focal_distance * tan(radians(uniforms.theta / 2f));
+    let w = aspect_raio * h;
+    let delta_x = w / f32(uniforms.vp_width);
+    let delta_y = -h / f32(uniforms.vp_height);
+    let starting = vec2f(-w/2f, h/2f) + vec2f(delta_x/2f, delta_y/2f);
+    var uv = starting + vec2f(f32(pos.x) * delta_x, f32(pos.y) * delta_y);
+    // uv += offset;
 
     let camera_pixel_direction = vec3f(uv, -uniforms.focal_distance);
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
