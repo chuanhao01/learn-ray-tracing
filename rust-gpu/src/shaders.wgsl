@@ -33,7 +33,7 @@ const PI = 3.1415927f;
 const FRAC_1_PI = 0.31830987f;
 const FRAC_PI_2 = 1.5707964f;
 const NEAR_ZERO = 0.000000001f;
-const DEPTH = 10u;
+const DEPTH = 15u;
 
 fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
@@ -171,15 +171,15 @@ struct LightRay{
     attenuation: vec3f,
     done: bool,
 }
-fn scatter_lambertain(hit: HitRecord, attenuation: vec3f, lambertain: ScatterMaterial) -> LightRay{
+fn scatter_lambertain(hit: HitRecord, lambertain: ScatterMaterial) -> LightRay{
     var scattered_direction = hit.against_normal_unit + rand_in_hemisphere();
     if near_zero(scattered_direction) {
         scattered_direction = hit.against_normal_unit;
     }
-    return LightRay(Ray(hit.p, scattered_direction), attenuation * lambertain.albedo, false);
+    return LightRay(Ray(hit.p, scattered_direction), lambertain.albedo, false);
 }
 
-fn color_ray(ray: Ray, attenuation: vec3f, t_min: f32, t_max: f32) -> LightRay {
+fn color_ray(ray: Ray, t_min: f32, t_max: f32) -> LightRay {
     var t_max_so_far = t_max;
     var closest_hit = no_hit_record();
     for (var i = 0u; i < arrayLength(&spheres); i += 1u) {
@@ -192,18 +192,16 @@ fn color_ray(ray: Ray, attenuation: vec3f, t_min: f32, t_max: f32) -> LightRay {
         }
     }
 
-    if !closest_hit.hit {
-        return sky_color(ray);
-    }
-
-    if closest_hit.material.t == 0u {
-        let scatter_material = scatter_materials[closest_hit.material.sactter_idx];
-        if scatter_material.t == 0u{
-            return scatter_lambertain(closest_hit, attenuation, scatter_material);
+    if closest_hit.hit{
+        if closest_hit.material.t == 0u {
+            let scatter_material = scatter_materials[closest_hit.material.sactter_idx];
+            if scatter_material.t == 0u{
+                return scatter_lambertain(closest_hit, scatter_material);
+            }
         }
     }
-    return LightRay(no_ray(), vec3f(1.0, 0.4117647058823529, 0.7058823529411765), true);
-    // return sky_color(ray);
+    // return LightRay(no_ray(), vec3f(0f), true);
+    return sky_color(ray);
 }
 
 
@@ -235,12 +233,13 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     var ray = camera_pixel_ray;
     var current_depth = 0u;
     while current_depth < DEPTH{
-        let radiance_sample = color_ray(ray, throughput, T_MIN, FLT_MAX);
+        let radiance_sample = color_ray(ray, T_MIN, FLT_MAX);
+        throughput *= radiance_sample.attenuation;
+        ray = radiance_sample.ray;
+        current_depth += 1u;
         if radiance_sample.done{
             break;
         }
-        throughput = radiance_sample.attenuation;
-        ray = radiance_sample.ray;
     }
 
     var old_sum: vec3f;
@@ -253,7 +252,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let new_sum = old_sum + throughput;
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
 
-    // return vec4f(radiance_sample, 1f);
+    // return vec4f(throughput, 1f);
     return vec4f(new_sum / f32(uniforms.frame_count), 1f);
     // return vec4f(spheres[1].center, 1f);
 }
