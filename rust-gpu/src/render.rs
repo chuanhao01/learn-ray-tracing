@@ -206,9 +206,9 @@ impl PathTracer {
     fn generate_scene() -> Scene {
         let mut scene = Scene::new();
         let lambertain_ground = Lambertain::new(Vec3f::new(0.8, 0.8, 0.0));
-        let lambertain_red = Lambertain::new(Vec3f::new(1.0, 0.0, 0.0));
-        let lambertain_green = Lambertain::new(Vec3f::new(0.0, 1.0, 0.0));
-        let lambertain_blue = Lambertain::new(Vec3f::new(0.0, 0.0, 1.0));
+        let lambertain_red = Lambertain::new(Vec3f::new(0.7, 0.0, 0.0));
+        let lambertain_green = Lambertain::new(Vec3f::new(0.0, 0.7, 0.0));
+        let lambertain_blue = Lambertain::new(Vec3f::new(0.1, 0.2, 0.5));
 
         // So the buffer is not empty
         let diffuse = Diffuse::new(5f32);

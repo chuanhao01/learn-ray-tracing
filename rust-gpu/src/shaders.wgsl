@@ -33,6 +33,7 @@ const PI = 3.1415927f;
 const FRAC_1_PI = 0.31830987f;
 const FRAC_PI_2 = 1.5707964f;
 const NEAR_ZERO = 0.000000001f;
+const DEPTH = 10u;
 
 fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
@@ -202,12 +203,13 @@ fn color_ray(ray: Ray, attenuation: vec3f, t_min: f32, t_max: f32) -> LightRay {
         }
     }
     return LightRay(no_ray(), vec3f(1.0, 0.4117647058823529, 0.7058823529411765), true);
+    // return sky_color(ray);
 }
 
 
 fn sky_color(ray: Ray) -> LightRay {
     let a = 0.5 * (normalize(ray.direction).y + 1.0);
-    return LightRay(Ray(vec3f(0f), vec3f(0f)), (1.0 - a) * vec3f(1.0) + a * vec3f(0.0, 0.0, 1.0), true);
+    return LightRay(Ray(vec3f(0f), vec3f(0f)), (1.0 - a) * vec3f(1.0) + a * vec3f(0.5, 0.7, 1.0), true);
 }
 @fragment
 fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
@@ -229,7 +231,17 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let camera_pixel_direction = vec3f(uv, -uniforms.focal_distance);
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
 
-    var radiance_sample = color_ray(camera_pixel_ray, vec3f(1f), T_MIN, FLT_MAX);
+    var throughput = vec3f(1f);
+    var ray = camera_pixel_ray;
+    var current_depth = 0u;
+    while current_depth < DEPTH{
+        let radiance_sample = color_ray(ray, throughput, T_MIN, FLT_MAX);
+        if radiance_sample.done{
+            break;
+        }
+        throughput = radiance_sample.attenuation;
+        ray = radiance_sample.ray;
+    }
 
     var old_sum: vec3f;
     if uniforms.frame_count > 1u {
@@ -238,7 +250,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         old_sum = vec3f(0f);
     }
 
-    let new_sum = old_sum + radiance_sample.attenuation;
+    let new_sum = old_sum + throughput;
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
 
     // return vec4f(radiance_sample, 1f);
