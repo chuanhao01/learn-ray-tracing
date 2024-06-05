@@ -181,6 +181,57 @@ pub struct PathTracer {
 }
 
 impl PathTracer {
+    pub fn move_camera(&mut self, scancode: u32) {
+        let move_factor = 0.05;
+        if scancode == 17 {
+            // w
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x,
+                self.uniforms.look_from.y,
+                self.uniforms.look_from.z - move_factor,
+            );
+        } else if scancode == 31 {
+            // s
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x,
+                self.uniforms.look_from.y,
+                self.uniforms.look_from.z + move_factor,
+            );
+        } else if scancode == 30 {
+            // a
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x - move_factor,
+                self.uniforms.look_from.y,
+                self.uniforms.look_from.z,
+            );
+        } else if scancode == 32 {
+            // d
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x + move_factor,
+                self.uniforms.look_from.y,
+                self.uniforms.look_from.z,
+            );
+        } else if scancode == 57 {
+            // space
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x,
+                self.uniforms.look_from.y + move_factor,
+                self.uniforms.look_from.z,
+            );
+        } else if scancode == 42 {
+            // shift
+            self.uniforms.look_from = Vec3f::new(
+                self.uniforms.look_from.x,
+                self.uniforms.look_from.y - move_factor,
+                self.uniforms.look_from.z,
+            );
+        } else {
+            // Dont process keypress
+            return;
+        }
+
+        self.uniforms.frame_count = 0;
+    }
     fn generate_scene() -> Scene {
         let mut scene = Scene::new();
         let lambertain_ground = Lambertain::new(Vec3f::new(0.8, 0.8, 0.0));

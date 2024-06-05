@@ -37,7 +37,7 @@ const PI = 3.1415927f;
 const FRAC_1_PI = 0.31830987f;
 const FRAC_PI_2 = 1.5707964f;
 const NEAR_ZERO = 0.000000001f;
-const DEPTH = 20u;
+const DEPTH = 50u;
 
 fn within(_min: f32, a: f32, _max: f32) -> bool {
     return _min <= a && a <= _max;
@@ -236,14 +236,13 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     let height = focal_distance * tan(radians(uniforms.theta / 2f));
     let width = aspect_raio * height;
-    let delta_x = width / f32(uniforms.vp_width);
-    let delta_y = -height / f32(uniforms.vp_height);
-    let top_left = camera_origin.xy + vec2f(-width/2f, height/2f) + vec2f(delta_x/2f, delta_y/2f);
+    let delta_x = vec3f(width / f32(uniforms.vp_width)) * u;
+    let delta_y = vec3f(-height / f32(uniforms.vp_height)) * v;
+    let top_left = uniforms.look_at + vec3f(-width / 2f) * u + vec3f(height / 2f) * v + vec3f(0.5) * delta_x + vec3f(0.5) * delta_y;
     // Add a offset from unit_square to the x, y * delta
-    // var uv = top_left + vec2f((f32(pos.x) + offset.x) * delta_x, (f32(pos.y) + offset.y) * delta_y);
-    var uv = top_left + vec2f((f32(pos.x) + offset.x) * delta_x) * u.xy + vec2f((f32(pos.y) + offset.y) * delta_y) * v.xy;
+    var uv = top_left + vec3f((f32(pos.x) + offset.x)) * delta_x + vec3f((f32(pos.y) + offset.y)) * delta_y;
 
-    let camera_pixel_direction = vec3f(uv, -focal_distance);
+    let camera_pixel_direction = uv - camera_origin;
     let camera_pixel_ray = Ray(camera_origin, camera_pixel_direction);
 
     var throughput = vec3f(1f);

@@ -1,7 +1,8 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
-use gpu_path_tracing::{InitConfig, InitParam, PathTracer, Vec3f};
+use gpu_path_tracing::{render, InitConfig, InitParam, PathTracer, Vec3f};
+use winit::event::ElementState;
 use {
     anyhow::{Context, Result},
     winit::{
@@ -18,8 +19,8 @@ const WIDTH: u32 = 1500;
 async fn main() -> Result<()> {
     let init_configs = InitConfig::new(InitParam {
         vp_width: WIDTH,
-        camera_theta: 120f32,
-        // look_from: Vec3f::new(-3.0, 0.0, 2.0),
+        camera_theta: 60f32,
+        // look_from: Vec3f::new(-2.0, 2.0, 1.0),
         // look_at: Vec3f::new(3.0, 0.0, -1.0),
         ..Default::default()
     });
@@ -37,11 +38,20 @@ async fn main() -> Result<()> {
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::WindowEvent { event, .. } => {
-                if event == WindowEvent::CloseRequested {
-                    *control_flow = ControlFlow::Exit;
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::KeyboardInput {
+                    device_id: _,
+                    input,
+                    is_synthetic,
+                } => {
+                    if !is_synthetic && input.state == ElementState::Pressed {
+                        renderer.move_camera(input.scancode)
+                    }
+                    // println!("{:?}", input);
                 }
-            }
+                _ => {}
+            },
             Event::RedrawRequested(_) => {
                 // Wait for the next available frame buffer.
                 let frame: wgpu::SurfaceTexture = surface
