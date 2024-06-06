@@ -19,7 +19,7 @@ const WIDTH: u32 = 1500;
 async fn main() -> Result<()> {
     let init_configs = InitConfig::new(InitParam {
         vp_width: WIDTH,
-        camera_theta: 60f32,
+        camera_theta: 100f32,
         // look_from: Vec3f::new(-2.0, 2.0, 1.0),
         // look_at: Vec3f::new(3.0, 0.0, -1.0),
         ..Default::default()
