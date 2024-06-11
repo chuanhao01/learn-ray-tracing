@@ -1,0 +1,6 @@
+- Implement a correct camera
+- Learn about getting buffer usage correct
+  - Uniform
+  - Storage
+- RNG in gpu
+- Materials
