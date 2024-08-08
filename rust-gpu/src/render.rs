@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::{gpu_buffer, InitConfig, Vec3f};
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
@@ -234,7 +236,7 @@ impl PathTracer {
     }
     fn generate_scene() -> Scene {
         let mut scene = Scene::new();
-        let factor = 0.1;
+        let factor = 0.5;
         let lambertain_ground = Lambertain::new(Vec3f::new(0.8, 0.8, 0.0));
         let lambertain_red = Lambertain::new(Vec3f::new(factor, 0.0, 0.0));
         let lambertain_green = Lambertain::new(Vec3f::new(0.0, factor, 0.0));
@@ -454,10 +456,25 @@ impl PathTracer {
 fn compile_shader_module(device: &wgpu::Device) -> wgpu::ShaderModule {
     use std::borrow::Cow;
 
-    let code = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/shaders.wgsl"));
+    let SHADERS: Vec<&str> = vec!["vs", "shaders"];
+    let EXTENSION: &str = "wgsl";
+    let code = SHADERS
+        .iter()
+        .map(|&shader| {
+            fs::read_to_string(format!(
+                "{}/shaders/{}.{}",
+                env!("CARGO_MANIFEST_DIR"),
+                shader,
+                EXTENSION
+            ))
+            .unwrap()
+        })
+        .collect::<String>();
+
+    // let code = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/shaders.wgsl"));
     device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(code)),
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(&code)),
     })
 }
 
