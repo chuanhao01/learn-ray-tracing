@@ -90,8 +90,10 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     textureStore(radiance_samples_new, vec2u(pos.xy), vec4f(new_sum, 0f));
 
     // return vec4f(throughput, 1f);
-    // Not sure if gamma correction is needed
+
+    // Adding gamma correction
+    let color = new_sum / f32(uniforms.frame_count);
+    return vec4f(pow(color, vec3(1f/ 2.2)), 1f);
     // return vec4f(sqrt(new_sum / f32(uniforms.frame_count)), 1f);
-    return vec4f(new_sum / f32(uniforms.frame_count), 1f);
     // return vec4f(spheres[1].center, 1f);
 }
