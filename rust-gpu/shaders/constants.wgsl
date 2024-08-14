@@ -1,0 +1,7 @@
+const T_MIN: f32 = 0.001;
+const FLT_MAX: f32 = 3.40282346638528859812e+38;
+const PI = 3.1415927f;
+const FRAC_1_PI = 0.31830987f;
+const FRAC_PI_2 = 1.5707964f;
+const NEAR_ZERO = 0.000000001f;
+const DEPTH = 50u;

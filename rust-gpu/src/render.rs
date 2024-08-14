@@ -456,7 +456,15 @@ impl PathTracer {
 fn compile_shader_module(device: &wgpu::Device) -> wgpu::ShaderModule {
     use std::borrow::Cow;
 
-    let SHADERS: Vec<&str> = vec!["vs", "shaders"];
+    let SHADERS: Vec<&str> = vec![
+        "vs",
+        "constants",
+        "bindings",
+        "helper",
+        "materials",
+        "objects",
+        "fs",
+    ];
     let EXTENSION: &str = "wgsl";
     let code = SHADERS
         .iter()
