@@ -102,6 +102,8 @@ pub struct Camera {
 impl Camera {
     pub fn new(camera_params: CameraParams) -> Self {
         let image_height = (camera_params.image_width as f64 / camera_params.aspect_ratio) as i64;
+        let focus_distance =
+            (camera_params.look_from.clone() - camera_params.look_at.clone()).length();
 
         let w = (camera_params.look_from.clone() - camera_params.look_at).unit_vector();
         let u = Vec3::cross(&camera_params.v_up, &w).unit_vector();
@@ -109,7 +111,7 @@ impl Camera {
 
         // Ratio of 1/2 viewport height to focus_distance
         let h = from_fdegree_to_fradian(camera_params.fov / 2_f64).tan();
-        let viewport_v = 2_f64 * h * camera_params.focus_distance;
+        let viewport_v = 2_f64 * h * focus_distance;
         let viewport_u = viewport_v * (camera_params.image_width as f64) / (image_height as f64);
 
         let delta_u = u.clone() * viewport_u;
@@ -118,12 +120,12 @@ impl Camera {
         let pixel_delta_v = delta_v.clone() / (image_height as f64);
 
         let pixel_00_loc = camera_params.look_from.clone()
-            - w.clone() * camera_params.focus_distance
+            - w.clone() * focus_distance
             - 0.5_f64 * (delta_u.clone() + delta_v.clone())
             + 0.5_f64 * (pixel_delta_u.clone() + pixel_delta_v.clone());
 
         let defocus_radius =
-            camera_params.focus_distance * from_fdegree_to_fradian(camera_params.focus_angle).tan();
+            focus_distance * from_fdegree_to_fradian(camera_params.focus_angle).tan();
         let defocus_disk_u = u.clone() * defocus_radius;
         let defocus_disk_v = v.clone() * defocus_radius;
 
