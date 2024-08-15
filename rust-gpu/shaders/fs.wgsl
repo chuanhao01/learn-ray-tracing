@@ -54,7 +54,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let v = cross(w, u);
 
 
-    let height = focal_distance * tan(radians(uniforms.theta / 2f));
+    let height = 2f * focal_distance * tan(radians(uniforms.theta / 2f));
     let width = aspect_raio * height;
     let delta_x = vec3f(width / f32(uniforms.vp_width)) * u;
     let delta_y = vec3f(-height / f32(uniforms.vp_height)) * v;
