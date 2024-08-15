@@ -140,19 +140,11 @@ impl Scene {
 }
 
 #[derive(Clone, Copy, Pod, Zeroable)]
-#[repr(C, align(16))]
+#[repr(C)]
 pub struct Uniforms {
-    pub look_at: Vec3f,
-    pub theta: f32,
-    // 16
-    pub look_from: Vec3f,
-    pub frame_count: u32,
-    // 16
-    pub v_up: Vec3f,
     pub vp_width: u32,
-    // 16
     pub vp_height: u32,
-    pub _padding: [u32; 3],
+    pub frame_count: u32,
 }
 impl Uniforms {
     pub fn from_init_configs(init_configs: InitConfig) -> Self {

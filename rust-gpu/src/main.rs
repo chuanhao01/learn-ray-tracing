@@ -1,7 +1,7 @@
 // Originally written in 2023 by Arman Uguray <arman.uguray@gmail.com>
 // SPDX-License-Identifier: CC-BY-4.0
 
-use gpu_path_tracing::{render, InitConfig, InitParam, PathTracer, Vec3f};
+use gpu_path_tracing::{InitConfig, InitParam, PathTracer};
 use winit::event::ElementState;
 use {
     anyhow::{Context, Result},

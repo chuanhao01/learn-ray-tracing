@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use bytemuck::{Pod, Zeroable};
 
 // Common vec used both in rust and memmory safe for buffer use in wgsl
@@ -11,6 +13,28 @@ pub struct Vec3f {
 impl Vec3f {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3f { x, y, z }
+    }
+}
+impl Add for Vec3f {
+    type Output = Vec3f;
+    fn add(self, rhs: Self) -> Self::Output {}
+}
+
+pub struct Camera {
+    /// Origin
+    look_from: Vec3f,
+    look_at: Vec3f,
+    /// "General" up direction
+    v_up: Vec3f,
+    theta: f32,
+    // Basis Vectors
+    u: Vec3f, // Right
+    v: Vecf,  // Up
+    w: Vec3f, // Opposite of look from - look at
+}
+impl Camera {
+    pub fn new(look_from: Vec3f, look_at: Vec3f, v_up: Vec3f, theta: f32) {
+        let _w = look_at - look_from;
     }
 }
 

@@ -69,3 +69,18 @@ impl Sphere {
         }
     }
 }
+
+#[derive(Clone, Copy, Pod, Zeroable)]
+#[repr(C, align(16))]
+/// Refer to crate::common::Camera
+pub struct CameraUniform {
+    // 16
+    look_from: Vec3f,
+    _pad0: u32,
+    // 16
+    look_at: Vec3f,
+    _pad1: u32,
+    // 16
+    v_up: Vec3f,
+    theta: f32,
+}
