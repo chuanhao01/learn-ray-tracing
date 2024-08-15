@@ -9,7 +9,6 @@ fn color_ray(ray: Ray, t_min: f32, t_max: f32) -> LightRay {
     var closest_hit = no_hit_record();
     for (var i = 0u; i < arrayLength(&spheres); i += 1u) {
         let sphere = spheres[i];
-        // sphere.radius += sin(f32(uniforms.frame_count) * 0.02) * 0.2;
         let hit = intersect_sphere(sphere, ray, t_max_so_far);
         if within(t_min, hit.t, t_max_so_far) && hit.hit {
             closest_hit = hit;

@@ -144,26 +144,27 @@ impl Scene {
 pub struct Uniforms {
     pub look_at: Vec3f,
     pub theta: f32,
+    // 16
     pub look_from: Vec3f,
-    pub focal_distance: f32,
+    pub frame_count: u32,
+    // 16
     pub v_up: Vec3f,
     pub vp_width: u32,
+    // 16
     pub vp_height: u32,
-    pub frame_count: u32,
-    pub _padding: [u32; 2],
+    pub _padding: [u32; 3],
 }
 impl Uniforms {
     pub fn from_init_configs(init_configs: InitConfig) -> Self {
         Self {
             vp_width: init_configs.vp_width,
             vp_height: init_configs.vp_height,
-            focal_distance: init_configs.camera_focal_distance,
             theta: init_configs.camera_theta,
             frame_count: 0,
             look_at: init_configs.look_at,
             look_from: init_configs.look_from,
             v_up: init_configs.v_up,
-            _padding: [0u32; 2],
+            _padding: [0u32; 3],
         }
     }
 }

@@ -2,11 +2,10 @@ struct Uniforms {
     look_at: vec3f,
     theta: f32, // In Degrees
     look_from: vec3f,
-    focal_distance: f32,
+    frame_count: u32,
     v_up: vec3f,
     vp_width: u32,
     vp_height: u32,
-    frame_count: u32
 }
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 @group(0) @binding(1) var<storage, read> spheres: array<Sphere>;
