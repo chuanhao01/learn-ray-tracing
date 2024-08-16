@@ -1,6 +1,10 @@
 use std::fs;
 
-use crate::{gpu_buffer, InitConfig, Vec3f};
+use crate::{
+    common::Camera,
+    gpu_buffer::{self, CameraUniform},
+    InitConfig, Vec3f,
+};
 use bytemuck::{Pod, Zeroable};
 use wgpu::util::DeviceExt;
 
@@ -147,16 +151,11 @@ pub struct Uniforms {
     pub frame_count: u32,
 }
 impl Uniforms {
-    pub fn from_init_configs(init_configs: InitConfig) -> Self {
+    pub fn from_init_configs(init_configs: &InitConfig) -> Self {
         Self {
             vp_width: init_configs.vp_width,
             vp_height: init_configs.vp_height,
-            theta: init_configs.camera_theta,
             frame_count: 0,
-            look_at: init_configs.look_at,
-            look_from: init_configs.look_from,
-            v_up: init_configs.v_up,
-            _padding: [0u32; 3],
         }
     }
 }
@@ -168,6 +167,9 @@ pub struct PathTracer {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
 
+    camera: Camera,
+    camera_uniform_buffer: wgpu::Buffer,
+
     scene: Scene,
 
     display_pipeline: wgpu::RenderPipeline,
@@ -177,49 +179,24 @@ pub struct PathTracer {
 
 impl PathTracer {
     pub fn move_camera(&mut self, scancode: u32) {
-        let move_factor = 0.05;
         if scancode == 17 {
             // w
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x,
-                self.uniforms.look_from.y,
-                self.uniforms.look_from.z - move_factor,
-            );
+            self.camera.move_forward();
         } else if scancode == 31 {
             // s
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x,
-                self.uniforms.look_from.y,
-                self.uniforms.look_from.z + move_factor,
-            );
+            self.camera.move_backward();
         } else if scancode == 30 {
             // a
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x - move_factor,
-                self.uniforms.look_from.y,
-                self.uniforms.look_from.z,
-            );
+            self.camera.move_left();
         } else if scancode == 32 {
             // d
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x + move_factor,
-                self.uniforms.look_from.y,
-                self.uniforms.look_from.z,
-            );
+            self.camera.move_right();
         } else if scancode == 57 {
             // space
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x,
-                self.uniforms.look_from.y + move_factor,
-                self.uniforms.look_from.z,
-            );
+            self.camera.move_up();
         } else if scancode == 42 {
             // shift
-            self.uniforms.look_from = Vec3f::new(
-                self.uniforms.look_from.x,
-                self.uniforms.look_from.y - move_factor,
-                self.uniforms.look_from.z,
-            );
+            self.camera.move_down();
         } else {
             // Dont process keypress
             return;
@@ -263,10 +240,17 @@ impl PathTracer {
         let (display_pipeline, [data_bind_group_layout, radiance_bind_group_layout]) =
             create_display_pipeline(&device, &shader_module);
 
-        let uniforms = Uniforms::from_init_configs(init_configs);
+        let uniforms = Uniforms::from_init_configs(&init_configs);
+        let camera = Camera::from_init_configs(&init_configs);
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("uniforms"),
             size: std::mem::size_of::<Uniforms>() as u64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let camera_uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("camera_uniform"),
+            size: std::mem::size_of::<CameraUniform>() as u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -279,6 +263,7 @@ impl PathTracer {
             &device,
             data_bind_group_layout,
             &uniform_buffer,
+            &camera_uniform_buffer,
             &scene.get_spheres_buffer(&device),
             &scene.get_materials_buffer(&device),
         );
@@ -295,6 +280,9 @@ impl PathTracer {
             uniforms,
             uniform_buffer,
 
+            camera,
+            camera_uniform_buffer,
+
             scene,
 
             display_pipeline,
@@ -307,6 +295,11 @@ impl PathTracer {
         self.uniforms.frame_count += 1;
         self.queue
             .write_buffer(&self.uniform_buffer, 0, bytemuck::bytes_of(&self.uniforms));
+        self.queue.write_buffer(
+            &self.camera_uniform_buffer,
+            0,
+            bytemuck::bytes_of(&self.camera.to_camera_uniform()),
+        );
 
         let mut encoder = self
             .device
@@ -394,6 +387,7 @@ impl PathTracer {
         device: &wgpu::Device,
         layout: wgpu::BindGroupLayout,
         uniform_buffer: &wgpu::Buffer,
+        camera_uniform_buffer: &wgpu::Buffer,
         spheres_buffer: &wgpu::Buffer,
         materials_buffer: &[wgpu::Buffer; 3],
     ) -> wgpu::BindGroup {
@@ -412,7 +406,7 @@ impl PathTracer {
                 wgpu::BindGroupEntry {
                     binding: 1,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: spheres_buffer,
+                        buffer: camera_uniform_buffer,
                         offset: 0,
                         size: None,
                     }),
@@ -420,7 +414,7 @@ impl PathTracer {
                 wgpu::BindGroupEntry {
                     binding: 2,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: &materials_buffer[0],
+                        buffer: spheres_buffer,
                         offset: 0,
                         size: None,
                     }),
@@ -428,13 +422,21 @@ impl PathTracer {
                 wgpu::BindGroupEntry {
                     binding: 3,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                        buffer: &materials_buffer[1],
+                        buffer: &materials_buffer[0],
                         offset: 0,
                         size: None,
                     }),
                 },
                 wgpu::BindGroupEntry {
                     binding: 4,
+                    resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                        buffer: &materials_buffer[1],
+                        offset: 0,
+                        size: None,
+                    }),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
                     resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
                         buffer: &materials_buffer[2],
                         offset: 0,
@@ -527,7 +529,7 @@ fn create_display_pipeline(
                     binding: 1,
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
                         min_binding_size: None,
                     },
@@ -555,6 +557,16 @@ fn create_display_pipeline(
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 4,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 5,
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Storage { read_only: true },

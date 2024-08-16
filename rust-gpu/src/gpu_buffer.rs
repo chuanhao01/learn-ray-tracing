@@ -84,3 +84,15 @@ pub struct CameraUniform {
     v_up: Vec3f,
     theta: f32,
 }
+impl CameraUniform {
+    pub fn new(look_from: Vec3f, look_at: Vec3f, v_up: Vec3f, theta: f32) -> Self {
+        Self {
+            look_from,
+            _pad0: 0u32,
+            look_at,
+            _pad1: 0u32,
+            v_up,
+            theta,
+        }
+    }
+}

@@ -36,7 +36,7 @@ fn sky_color(ray: Ray) -> LightRay {
 @fragment
 fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     init_rng(vec2u(pos.xy));
-    let camera_origin = uniforms.look_from;
+    let camera_origin = camera_uniforms.look_from;
     let aspect_raio = f32(uniforms.vp_width) / f32(uniforms.vp_height);
 
     // let offset = vec2f(0f, 0f);
@@ -45,20 +45,20 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         rand_f32() - 0.5
     );
 
-    let _w = uniforms.look_at - uniforms.look_from;
+    let _w = camera_uniforms.look_at - camera_uniforms.look_from;
     // let _w = uniforms.look_from - uniforms.look_at;
     let focal_distance = length(_w);
 
     let w = normalize(_w);
-    let u = normalize(cross(uniforms.v_up, w));
+    let u = normalize(cross(camera_uniforms.v_up, w));
     let v = cross(w, u);
 
 
-    let height = 2f * focal_distance * tan(radians(uniforms.theta / 2f));
+    let height = 2f * focal_distance * tan(radians(camera_uniforms.theta / 2f));
     let width = aspect_raio * height;
     let delta_x = vec3f(width / f32(uniforms.vp_width)) * u;
     let delta_y = vec3f(-height / f32(uniforms.vp_height)) * v;
-    let top_left = uniforms.look_at + vec3f(-width / 2f) * u + vec3f(height / 2f) * v + vec3f(0.5) * delta_x + vec3f(0.5) * delta_y;
+    let top_left = camera_uniforms.look_at + vec3f(-width / 2f) * u + vec3f(height / 2f) * v + vec3f(0.5) * delta_x + vec3f(0.5) * delta_y;
     // Add a offset from unit_square to the x, y * delta
     var uv = top_left + vec3f((f32(pos.x) + offset.x)) * delta_x + vec3f((f32(pos.y) + offset.y)) * delta_y;
 

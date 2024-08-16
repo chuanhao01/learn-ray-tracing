@@ -1,6 +1,8 @@
-use std::ops::Add;
+use std::ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign};
 
 use bytemuck::{Pod, Zeroable};
+
+use crate::gpu_buffer::CameraUniform;
 
 // Common vec used both in rust and memmory safe for buffer use in wgsl
 #[derive(Clone, Copy, Pod, Zeroable)]
@@ -14,27 +16,130 @@ impl Vec3f {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3f { x, y, z }
     }
+    pub fn length_squared(&self) -> f32 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+    pub fn length(&self) -> f32 {
+        self.length_squared().sqrt()
+    }
+
+    pub fn normalize(&self) -> Self {
+        let len = self.length();
+        Vec3f::new(self.x / len, self.y / len, self.z / len)
+    }
+    /// Calculates the cross product of 2 vectors
+    pub fn cross(u: &Vec3f, v: &Vec3f) -> Vec3f {
+        Vec3f::new(
+            u.y * v.z - u.z * v.y,
+            u.z * v.x - u.x * v.z,
+            u.x * v.y - u.y * v.x,
+        )
+    }
+}
+impl Neg for Vec3f {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Vec3f::new(-self.x, -self.y, -self.z)
+    }
+}
+impl AddAssign for Vec3f {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+    }
 }
 impl Add for Vec3f {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut v = self;
+        v += rhs;
+        v
+    }
+}
+impl Sub for Vec3f {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut v = self;
+        v += -rhs;
+        v
+    }
+}
+impl Mul<Vec3f> for f32 {
     type Output = Vec3f;
-    fn add(self, rhs: Self) -> Self::Output {}
+    fn mul(self, rhs: Vec3f) -> Self::Output {
+        Vec3f::new(rhs.x * self, rhs.y * self, rhs.z * self)
+    }
 }
 
 pub struct Camera {
-    /// Origin
+    // Cam params
     look_from: Vec3f,
     look_at: Vec3f,
-    /// "General" up direction
     v_up: Vec3f,
     theta: f32,
-    // Basis Vectors
+    // Basis Vectors, used for moving around later on
     u: Vec3f, // Right
-    v: Vecf,  // Up
-    w: Vec3f, // Opposite of look from - look at
+    v: Vec3f, // Up
+    w: Vec3f, // look from to look at (straight)
+
+    // Factor to scale u, v, w vectors when using movement keys
+    u_factor: f32,
+    v_factor: f32,
+    w_factor: f32,
 }
 impl Camera {
-    pub fn new(look_from: Vec3f, look_at: Vec3f, v_up: Vec3f, theta: f32) {
+    pub fn from_init_configs(init_config: &InitConfig) -> Self {
+        Self::new(
+            init_config.look_from,
+            init_config.look_at,
+            init_config.v_up,
+            init_config.camera_theta,
+            0.1,
+        )
+    }
+
+    // factor: used for all u, v and w factors for now
+    pub fn new(look_from: Vec3f, look_at: Vec3f, v_up: Vec3f, theta: f32, factor: f32) -> Self {
         let _w = look_at - look_from;
+        let w = _w.normalize();
+        let u = Vec3f::cross(&v_up, &w).normalize();
+        let v = Vec3f::cross(&w, &u);
+
+        Self {
+            look_from,
+            look_at,
+            v_up,
+            theta,
+            u,
+            v,
+            w,
+            u_factor: factor,
+            v_factor: factor,
+            w_factor: factor,
+        }
+    }
+    pub fn move_right(&mut self) {
+        self.look_from += self.u_factor * self.u;
+    }
+    pub fn move_left(&mut self) {
+        self.look_from += -self.u_factor * self.u;
+    }
+    pub fn move_forward(&mut self) {
+        self.look_from += self.w_factor * self.w;
+    }
+    pub fn move_backward(&mut self) {
+        self.look_from += -self.w_factor * self.w;
+    }
+    pub fn move_up(&mut self) {
+        self.look_from += self.v_factor * self.v;
+    }
+    pub fn move_down(&mut self) {
+        self.look_from += -self.v_factor * self.v;
+    }
+
+    pub fn to_camera_uniform(&self) -> CameraUniform {
+        CameraUniform::new(self.look_from, self.look_at, self.v_up, self.theta)
     }
 }
 
