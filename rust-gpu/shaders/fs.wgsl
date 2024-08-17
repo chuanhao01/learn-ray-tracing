@@ -1,16 +1,27 @@
+struct Ray {
+    origin: vec3f,
+    direction: vec3f
+}
+fn no_ray() -> Ray{
+    Ray(vec3f(0f), vec3f(0f));
+}
+fn at(ray: Ray, t: f32) -> vec3f {
+    return ray.origin + t * ray.direction;
+}
+
 struct LightRay{
     ray: Ray,
     attenuation: vec3f,
     done: bool,
 }
 
-fn color_ray(ray: Ray, t_min: f32, t_max: f32) -> LightRay {
-    var t_max_so_far = t_max;
+fn color_ray(ray: Ray) -> LightRay {
+    var t_max_so_far = FLT_MAX;
     var closest_hit = no_hit_record();
     for (var i = 0u; i < arrayLength(&spheres); i += 1u) {
         let sphere = spheres[i];
         let hit = intersect_sphere(sphere, ray, t_max_so_far);
-        if within(t_min, hit.t, t_max_so_far) && hit.hit {
+        if within(T_MIN, hit.t, t_max_so_far) && hit.hit {
             closest_hit = hit;
             t_max_so_far = closest_hit.t;
         }
@@ -21,6 +32,8 @@ fn color_ray(ray: Ray, t_min: f32, t_max: f32) -> LightRay {
             let scatter_material = scatter_materials[closest_hit.material.sactter_idx];
             if scatter_material.t == 0u{
                 return scatter_lambertain(closest_hit, scatter_material);
+            } else if scatter_material.t == 1u {
+                return scatter_metal(ray, closest_hit, scatter_material);
             }
         }
     }
@@ -69,7 +82,7 @@ fn display_fs(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     var ray = camera_pixel_ray;
     var current_depth = 0u;
     while current_depth < DEPTH{
-        let radiance_sample = color_ray(ray, T_MIN, FLT_MAX);
+        let radiance_sample = color_ray(ray);
         throughput *= radiance_sample.attenuation;
         ray = radiance_sample.ray;
         current_depth += 1u;

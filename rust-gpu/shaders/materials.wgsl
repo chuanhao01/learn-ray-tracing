@@ -22,3 +22,12 @@ fn scatter_lambertain(hit: HitRecord, lambertain: ScatterMaterial) -> LightRay{
     }
     return LightRay(Ray(hit.p, scattered_direction), lambertain.albedo, false);
 }
+
+fn scatter_metal(ray: Ray, hit: HitRecord, metal: ScatterMaterial) -> LightRay {
+    var scattered_direction = reflect(ray.direction, hit.against_normal_unit) + metal.fuzzy_factor * rand_in_hemisphere();
+    if dot(scattered_direction, hit.against_normal_unit) > 0f{
+        return LightRay(Ray(hit.p, scattered_direction), metal.albedo, false);
+    } else {
+        return LightRay(no_ray(), vec3f(0f), true);
+    }
+}

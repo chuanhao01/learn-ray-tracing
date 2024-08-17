@@ -57,14 +57,3 @@ fn rand_in_hemisphere() -> vec3f{
 
     return vec3f(x, y, z);
 }
-
-struct Ray {
-    origin: vec3f,
-    direction: vec3f
-}
-fn no_ray() -> Ray{
-    Ray(vec3f(0f), vec3f(0f));
-}
-fn at(ray: Ray, t: f32) -> vec3f {
-    return ray.origin + t * ray.direction;
-}

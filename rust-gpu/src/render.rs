@@ -76,6 +76,9 @@ impl PathTracer {
         let lambertain_green = ScatterMaterial::new_lambertain(Vec3f::new(0.0, factor, 0.0));
         let lambertain_blue = ScatterMaterial::new_lambertain(Vec3f::new(0.0, 0.0, factor));
 
+        let metal_shiny = ScatterMaterial::new_metal(Vec3f::new(0.9, 0.0, 0.0), 0.9);
+        let metal_fuzzy = ScatterMaterial::new_metal(Vec3f::new(0.9, 0.9, 0.9), 0.1);
+
         // So the buffer is not empty
         let diffuse = EmitMaterial::new_diffuse(5f32);
 
@@ -83,6 +86,10 @@ impl PathTracer {
         let mat_red_id = scene.add_material(Material::ScatterMaterial(lambertain_red));
         let mat_green_id = scene.add_material(Material::ScatterMaterial(lambertain_green));
         let mat_blue_id = scene.add_material(Material::ScatterMaterial(lambertain_blue));
+
+        let mat_metal_shiny_id = scene.add_material(Material::ScatterMaterial(metal_shiny));
+        let mat_metal_fuzzy_id = scene.add_material(Material::ScatterMaterial(metal_fuzzy));
+
         #[allow(unused_variables)]
         let diffuse_id = scene.add_material(Material::EmitMaterial(diffuse));
 
@@ -92,7 +99,19 @@ impl PathTracer {
         let middle_sphere = gpu_buffer::Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5, mat_green_id);
         let right_sphere = gpu_buffer::Sphere::new(Vec3f::new(1.0, 0.0, -1.0), 0.5, mat_blue_id);
 
-        scene.spheres = vec![floor_sphere, left_sphere, middle_sphere, right_sphere];
+        let right_metal_sphere =
+            gpu_buffer::Sphere::new(Vec3f::new(2.0, 0.0, -1.0), 0.5, mat_metal_shiny_id);
+        let righter_metal_sphere =
+            gpu_buffer::Sphere::new(Vec3f::new(3.01, 0.0, -1.0), 0.5, mat_metal_fuzzy_id);
+
+        scene.spheres = vec![
+            floor_sphere,
+            left_sphere,
+            middle_sphere,
+            right_sphere,
+            right_metal_sphere,
+            righter_metal_sphere,
+        ];
         scene
     }
     pub fn new(device: wgpu::Device, queue: wgpu::Queue, init_configs: InitConfig) -> Self {
