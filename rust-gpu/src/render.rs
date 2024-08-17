@@ -3,145 +3,11 @@ use std::fs;
 use crate::{
     common::Camera,
     gpu_buffer::{self, CameraUniform},
+    materials::{EmitMaterial, Material, ScatterMaterial},
+    scene::Scene,
     InitConfig, Vec3f,
 };
 use bytemuck::{Pod, Zeroable};
-use wgpu::util::DeviceExt;
-
-struct Lambertain {
-    albedo: Vec3f,
-}
-impl Lambertain {
-    fn new(albedo: Vec3f) -> Self {
-        Self { albedo }
-    }
-}
-impl ScatterMaterial for Lambertain {
-    fn get_t(&self) -> ScatterT {
-        ScatterT::Lambertain
-    }
-    fn to_gpu_material(&self) -> gpu_buffer::ScatterMaterial {
-        gpu_buffer::ScatterMaterial::new(self.albedo, self.get_t() as u32, 0f32, 0f32)
-    }
-}
-
-trait ScatterMaterial {
-    fn get_t(&self) -> ScatterT;
-    fn to_gpu_material(&self) -> gpu_buffer::ScatterMaterial;
-}
-enum ScatterT {
-    Lambertain,
-}
-
-struct Diffuse {
-    power: f32,
-}
-impl Diffuse {
-    fn new(power: f32) -> Self {
-        Self { power }
-    }
-}
-impl EmitMaterial for Diffuse {
-    fn get_t(&self) -> EmitT {
-        EmitT::Diffuse
-    }
-    fn to_gpu_material(&self) -> gpu_buffer::EmitMaterial {
-        gpu_buffer::EmitMaterial::new(self.get_t() as u32, self.power)
-    }
-}
-
-trait EmitMaterial {
-    fn get_t(&self) -> EmitT;
-    fn to_gpu_material(&self) -> gpu_buffer::EmitMaterial;
-}
-enum EmitT {
-    Diffuse,
-}
-
-enum Material {
-    ScatterMaterial(Box<dyn ScatterMaterial>),
-    EmitMaterial(Box<dyn EmitMaterial>),
-}
-impl Material {
-    fn get_t(&self) -> u32 {
-        match self {
-            Self::ScatterMaterial(_) => 0,
-            Self::EmitMaterial(_) => 1,
-        }
-    }
-}
-
-struct Scene {
-    pub spheres: Vec<gpu_buffer::Sphere>,
-    materials: Vec<Material>,
-}
-impl Scene {
-    pub fn new() -> Self {
-        Self {
-            spheres: Vec::new(),
-            materials: Vec::new(),
-        }
-    }
-    /// Use to add materials to be used by objects in the scene
-    /// Returns idx to be used on objects
-    pub fn add_material(&mut self, material: Material) -> u32 {
-        self.materials.push(material);
-        self.materials.len() as u32 - 1
-    }
-
-    pub fn get_spheres_buffer(&self, device: &wgpu::Device) -> wgpu::Buffer {
-        device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            contents: bytemuck::cast_slice(self.spheres.as_slice()),
-            label: Some("Sphere Storage Buffer"),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        })
-    }
-
-    // Returns, [materials_buffer, scatter_material_buffer, emit_material_buffer]
-    pub fn get_materials_buffer(&self, device: &wgpu::Device) -> [wgpu::Buffer; 3] {
-        let mut gpu_materials = Vec::new();
-        let mut gpu_scatter_materials = Vec::new();
-        let mut gpu_emit_materials = Vec::new();
-
-        for material in &self.materials {
-            match material {
-                Material::ScatterMaterial(scatter_material) => {
-                    gpu_scatter_materials.push(scatter_material.to_gpu_material());
-                    gpu_materials.push(gpu_buffer::Material::new(
-                        material.get_t(),
-                        gpu_scatter_materials.len() as u32 - 1,
-                        0,
-                    ));
-                }
-                Material::EmitMaterial(emit_material) => {
-                    gpu_emit_materials.push(emit_material.to_gpu_material());
-                    gpu_materials.push(gpu_buffer::Material::new(
-                        material.get_t(),
-                        gpu_emit_materials.len() as u32 - 1,
-                        0,
-                    ));
-                }
-            }
-        }
-        [
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                contents: bytemuck::cast_slice(gpu_materials.as_slice()),
-                label: Some("Materials Storage Buffer"),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            }),
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                contents: bytemuck::cast_slice(gpu_scatter_materials.as_slice()),
-                label: Some("Scatter Materials Storage Buffer"),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            }),
-            device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                contents: bytemuck::cast_slice(gpu_emit_materials.as_slice()),
-                label: Some("Emit Materials Storage Buffer"),
-                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-            }),
-        ]
-    }
-}
 
 #[derive(Clone, Copy, Pod, Zeroable)]
 #[repr(C)]
@@ -169,8 +35,6 @@ pub struct PathTracer {
 
     camera: Camera,
     camera_uniform_buffer: wgpu::Buffer,
-
-    scene: Scene,
 
     display_pipeline: wgpu::RenderPipeline,
     data_bind_group: wgpu::BindGroup,
@@ -207,21 +71,20 @@ impl PathTracer {
     fn generate_scene() -> Scene {
         let mut scene = Scene::new();
         let factor = 0.5;
-        let lambertain_ground = Lambertain::new(Vec3f::new(0.8, 0.8, 0.0));
-        let lambertain_red = Lambertain::new(Vec3f::new(factor, 0.0, 0.0));
-        let lambertain_green = Lambertain::new(Vec3f::new(0.0, factor, 0.0));
-        let lambertain_blue = Lambertain::new(Vec3f::new(0.0, 0.0, factor));
+        let lambertain_ground = ScatterMaterial::new_lambertain(Vec3f::new(0.8, 0.8, 0.0));
+        let lambertain_red = ScatterMaterial::new_lambertain(Vec3f::new(factor, 0.0, 0.0));
+        let lambertain_green = ScatterMaterial::new_lambertain(Vec3f::new(0.0, factor, 0.0));
+        let lambertain_blue = ScatterMaterial::new_lambertain(Vec3f::new(0.0, 0.0, factor));
 
         // So the buffer is not empty
-        let diffuse = Diffuse::new(5f32);
+        let diffuse = EmitMaterial::new_diffuse(5f32);
 
-        let mat_ground_id =
-            scene.add_material(Material::ScatterMaterial(Box::new(lambertain_ground)));
-        let mat_red_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_red)));
-        let mat_green_id =
-            scene.add_material(Material::ScatterMaterial(Box::new(lambertain_green)));
-        let mat_blue_id = scene.add_material(Material::ScatterMaterial(Box::new(lambertain_blue)));
-        let diffuse_id = scene.add_material(Material::EmitMaterial(Box::new(diffuse)));
+        let mat_ground_id = scene.add_material(Material::ScatterMaterial(lambertain_ground));
+        let mat_red_id = scene.add_material(Material::ScatterMaterial(lambertain_red));
+        let mat_green_id = scene.add_material(Material::ScatterMaterial(lambertain_green));
+        let mat_blue_id = scene.add_material(Material::ScatterMaterial(lambertain_blue));
+        #[allow(unused_variables)]
+        let diffuse_id = scene.add_material(Material::EmitMaterial(diffuse));
 
         let floor_sphere =
             gpu_buffer::Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0, mat_ground_id);
@@ -282,8 +145,6 @@ impl PathTracer {
 
             camera,
             camera_uniform_buffer,
-
-            scene,
 
             display_pipeline,
             data_bind_group,
@@ -451,6 +312,7 @@ impl PathTracer {
 fn compile_shader_module(device: &wgpu::Device) -> wgpu::ShaderModule {
     use std::borrow::Cow;
 
+    #[allow(non_snake_case)]
     let SHADERS: Vec<&str> = vec![
         "vs",
         "constants",
@@ -460,6 +322,7 @@ fn compile_shader_module(device: &wgpu::Device) -> wgpu::ShaderModule {
         "objects",
         "fs",
     ];
+    #[allow(non_snake_case)]
     let EXTENSION: &str = "wgsl";
     let code = SHADERS
         .iter()
