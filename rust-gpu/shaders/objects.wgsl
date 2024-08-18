@@ -29,7 +29,7 @@ fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
     let recip_a = 1.0 / a;
     let t1 = (-h - sqrt_d) * recip_a;
     let t2 = (-h + sqrt_d) * recip_a;
-    let t = select(t2, t1, t1 > 0.0);
+    var t = select(t2, t1, t1 > T_MIN);
     if !within(T_MIN, t, t_max) {
         return no_hit_record();
     }
