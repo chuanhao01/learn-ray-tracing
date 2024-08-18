@@ -34,6 +34,8 @@ fn color_ray(ray: Ray) -> LightRay {
                 return scatter_lambertain(closest_hit, scatter_material);
             } else if scatter_material.t == 1u {
                 return scatter_metal(ray, closest_hit, scatter_material);
+            } else if scatter_material.t == 2u {
+                return scatter_dielectric(ray, closest_hit, scatter_material);
             }
         }
     }

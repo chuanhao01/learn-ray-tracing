@@ -2,11 +2,20 @@ struct HitRecord {
     t: f32,
     p: vec3f,
     against_normal_unit: vec3f,
+    front_face: bool,
     hit: bool,
     material: Material,
 }
 fn no_hit_record() -> HitRecord {
-    return HitRecord(0.0, vec3f(0.0), vec3f(0.0), false, Material(0u, 0u, 0u));
+    return HitRecord(0.0, vec3f(0.0), vec3f(0.0), false, false, Material(0u, 0u, 0u));
+}
+fn new_hit_record(ray: Ray, outward_normal_unit: vec3f, t: f32, p: vec3f, material: Material) -> HitRecord{
+    let front_face = dot(ray.direction, outward_normal_unit) < 0f;
+    var against_normal_unit = outward_normal_unit;
+    if !front_face{
+        against_normal_unit = -outward_normal_unit;
+    }
+    return HitRecord(t, p, against_normal_unit, front_face, true, material);
 }
 
 struct Sphere {
@@ -35,5 +44,6 @@ fn intersect_sphere(sphere: Sphere, ray: Ray, t_max: f32) -> HitRecord {
     }
 
     let p = at(ray, t);
-    return HitRecord(t, p, (p - sphere.center) / sphere.radius, true, materials[sphere.material_idx]);
+    let outward_normal_unit = (p - sphere.center) / sphere.radius;
+    return new_hit_record(ray, outward_normal_unit, t, p, materials[sphere.material_idx]);
 }

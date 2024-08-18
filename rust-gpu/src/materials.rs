@@ -7,16 +7,21 @@ pub struct Metal {
     albedo: Vec3f,
     fuzzy_factor: f32,
 }
+pub struct Dielectric {
+    index_of_reflectance: f32,
+}
 
 pub enum ScatterMaterial {
     Lambertain(Lambertain),
     Metal(Metal),
+    Dielectric(Dielectric),
 }
 impl ScatterMaterial {
     pub fn get_t(&self) -> u32 {
         match self {
             Self::Lambertain(_) => 0,
             Self::Metal(_) => 1,
+            Self::Dielectric(_) => 2,
         }
     }
     pub fn to_gpu_material(&self) -> gpu_buffer::ScatterMaterial {
@@ -28,6 +33,12 @@ impl ScatterMaterial {
             Self::Metal(metal) => {
                 gpu_buffer::ScatterMaterial::new(metal.albedo, t, metal.fuzzy_factor, 0f32)
             }
+            Self::Dielectric(dielectric) => gpu_buffer::ScatterMaterial::new(
+                Vec3f::empty(),
+                t,
+                0f32,
+                dielectric.index_of_reflectance,
+            ),
         }
     }
 
@@ -35,7 +46,6 @@ impl ScatterMaterial {
     pub fn new_lambertain(albedo: Vec3f) -> Self {
         Self::Lambertain(Lambertain { albedo })
     }
-
     pub fn new_metal(albedo: Vec3f, fuzzy_factor: f32) -> Self {
         let fuzzy_factor = if fuzzy_factor > 1f32 {
             1f32
@@ -45,6 +55,11 @@ impl ScatterMaterial {
         Self::Metal(Metal {
             albedo,
             fuzzy_factor,
+        })
+    }
+    pub fn new_dielectric(index_of_reflectance: f32) -> Self {
+        Self::Dielectric(Dielectric {
+            index_of_reflectance,
         })
     }
 }

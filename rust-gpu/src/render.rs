@@ -76,8 +76,11 @@ impl PathTracer {
         let lambertain_green = ScatterMaterial::new_lambertain(Vec3f::new(0.0, factor, 0.0));
         let lambertain_blue = ScatterMaterial::new_lambertain(Vec3f::new(0.0, 0.0, factor));
 
-        let metal_shiny = ScatterMaterial::new_metal(Vec3f::new(0.9, 0.0, 0.0), 0.9);
-        let metal_fuzzy = ScatterMaterial::new_metal(Vec3f::new(0.9, 0.9, 0.9), 0.1);
+        let metal_shiny = ScatterMaterial::new_metal(Vec3f::new(0.8, 0.8, 0.8), 0.9);
+        let metal_fuzzy = ScatterMaterial::new_metal(Vec3f::new(0.8, 0.8, 0.8), 0.2);
+
+        let glass_outer = ScatterMaterial::new_dielectric(1.5);
+        let glass_inner = ScatterMaterial::new_dielectric(1.0 / 1.5);
 
         // So the buffer is not empty
         let diffuse = EmitMaterial::new_diffuse(5f32);
@@ -90,6 +93,9 @@ impl PathTracer {
         let mat_metal_shiny_id = scene.add_material(Material::ScatterMaterial(metal_shiny));
         let mat_metal_fuzzy_id = scene.add_material(Material::ScatterMaterial(metal_fuzzy));
 
+        let mat_glass_outer_id = scene.add_material(Material::ScatterMaterial(glass_outer));
+        let mat_glass_inner_id = scene.add_material(Material::ScatterMaterial(glass_inner));
+
         #[allow(unused_variables)]
         let diffuse_id = scene.add_material(Material::EmitMaterial(diffuse));
 
@@ -100,9 +106,15 @@ impl PathTracer {
         let right_sphere = gpu_buffer::Sphere::new(Vec3f::new(1.0, 0.0, -1.0), 0.5, mat_blue_id);
 
         let right_metal_sphere =
-            gpu_buffer::Sphere::new(Vec3f::new(2.0, 0.0, -1.0), 0.5, mat_metal_shiny_id);
+            gpu_buffer::Sphere::new(Vec3f::new(2.0, 0.0, -2.2), 0.5, mat_metal_shiny_id);
         let righter_metal_sphere =
-            gpu_buffer::Sphere::new(Vec3f::new(3.01, 0.0, -1.0), 0.5, mat_metal_fuzzy_id);
+            gpu_buffer::Sphere::new(Vec3f::new(3.0, 0.0, -2.2), 0.5, mat_metal_fuzzy_id);
+        let right_glass_ball_sphere_outer =
+            gpu_buffer::Sphere::new(Vec3f::new(3.0, 0.0, -1.0), 0.5, mat_glass_outer_id);
+        let right_glass_ball_sphere_inner =
+            gpu_buffer::Sphere::new(Vec3f::new(3.0, 0.0, -1.0), 0.4, mat_glass_inner_id);
+        let righter_glass_ball =
+            gpu_buffer::Sphere::new(Vec3f::new(-2.0, 0.0, -1.0), 0.5, mat_glass_outer_id);
 
         scene.spheres = vec![
             floor_sphere,
@@ -111,6 +123,9 @@ impl PathTracer {
             right_sphere,
             right_metal_sphere,
             righter_metal_sphere,
+            right_glass_ball_sphere_outer,
+            right_glass_ball_sphere_inner,
+            righter_glass_ball,
         ];
         scene
     }

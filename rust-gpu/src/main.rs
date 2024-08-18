@@ -22,8 +22,8 @@ async fn main() -> Result<()> {
         camera_theta: 100f32,
         // look_from: Vec3f::new(-2.0, 2.0, 1.0),
         // look_at: Vec3f::new(3.0, 0.0, -1.0),
-        look_from: Vec3f::new(0.0, 0.75, 1.0),
-        look_at: Vec3f::new(0.0, -0.5, -1.0),
+        look_from: Vec3f::new(0.0, 0.0, 1.0),
+        look_at: Vec3f::new(0.0, 0.0, -1.0),
         v_up: Vec3f::new(0.0, 1.0, 0.0),
         ..Default::default()
     });

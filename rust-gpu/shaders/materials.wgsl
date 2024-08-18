@@ -31,3 +31,27 @@ fn scatter_metal(ray: Ray, hit: HitRecord, metal: ScatterMaterial) -> LightRay {
         return LightRay(no_ray(), vec3f(0f), true);
     }
 }
+
+fn reflectance(cos_theta: f32, refraction_ratio: f32) -> f32 {
+    var r0 = (1f - refraction_ratio) / (1f + refraction_ratio);
+    r0 = r0 * r0;
+    return r0 + (1f - r0) * pow(1f - cos_theta, 5f);
+}
+fn scatter_dielectric(ray: Ray, hit: HitRecord, dielectric: ScatterMaterial) -> LightRay {
+    let albedo = vec3f(1f);
+
+    var refraction_ratio = dielectric.index_of_reflectance;
+    if hit.front_face {
+        refraction_ratio = 1f / dielectric.index_of_reflectance;
+    }
+    let unit_direction = normalize(ray.direction);
+    let cos_theta = min(dot(-unit_direction, hit.against_normal_unit), 1f);
+    let sin_theta = sqrt(1f - cos_theta * cos_theta);
+    if refraction_ratio * sin_theta > 1f || reflectance(cos_theta, refraction_ratio) > rand_f32() {
+        // Reflecting
+        return LightRay(Ray(hit.p, reflect(unit_direction, hit.against_normal_unit)), albedo, false);
+    } else {
+        // Refracting
+        return LightRay(Ray(hit.p, refract(unit_direction, hit.against_normal_unit, refraction_ratio)), albedo, false);
+    }
+}
